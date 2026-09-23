@@ -5,11 +5,11 @@ Repositori ini berisi **tiga bagian** yang berjalan di atas **satu sumber data**
 
 | Bagian | Folder | Alamat | Isi |
 |---|---|---|---|
-| Dashboard Admin | `frontend/` | http://localhost:5173 | Modul operasional klinik + e-commerce/ERP (PRD §6.2, §22) |
+| Dashboard Admin | `admin/` | http://localhost:5173 | Modul operasional klinik + e-commerce/ERP (PRD §6.2, §22) |
 | Aplikasi Pasien | `pasien/` | http://localhost:5174 | Fitur pasien F-01..F-11 + alur e-commerce (PRD §6.1) |
 | API Bersama | `server/` + `shared/` | http://127.0.0.1:4000 | REST API + aturan bisnis BR-02..BR-10 |
 
-> Dokumen acuan: `PRD_Premysis_Medika_v1.1.md` (PRD v1.1).
+> Dokumen acuan: `docs/PRD.md` (PRD v1.1).
 
 ## Mengapa ada server API
 
@@ -119,7 +119,7 @@ sekaligus**, supaya angka di layar selalu sama dengan yang ditegakkan saat check
 
 ```bash
 npm install        # memasang dependensi root
-npm run install:all  # memasang dependensi frontend/ dan pasien/
+npm run install:all  # memasang dependensi admin/ dan pasien/
 npm run dev        # menjalankan API + dashboard + app pasien sekaligus
 ```
 
@@ -184,7 +184,7 @@ Semua akun memakai password `demo1234`.
 
 ```
 .
-├── frontend/          Dashboard admin (React + Vite + Tailwind v4)
+├── admin/             Dashboard admin (React + Vite + Tailwind v4)
 ├── pasien/            Aplikasi pasien (React + Vite + Tailwind v4)
 ├── server/
 │   ├── index.js       REST API + penegakan aturan bisnis BR-02..BR-10
@@ -194,8 +194,9 @@ Semua akun memakai password `demo1234`.
 │   ├── format.js      Format tanggal/uang + konstanta waktu demo
 │   ├── pengiriman.js  Aturan jarak, zona, kurir, ongkir, batas radius
 │   ├── pembayaran.js  Rekening klinik, label status & instruksi pembayaran
-│   └── api.js         Definisi koleksi bersama
 ├── scripts/dev.mjs    Orkestrator `npm run dev`
+├── docs/PRD.md        Product Requirements Document (v1.1)
+├── .agents/           Skill AI untuk desain UI (opsional, tidak dipakai build)
 └── package.json       Skrip orkestrasi
 ```
 

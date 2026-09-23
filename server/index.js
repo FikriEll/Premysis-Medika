@@ -734,7 +734,7 @@ async function sajikanStatis(res, filePath, fallback) {
 }
 
 const APP_PASIEN = join(ROOT, 'pasien', 'dist')
-const APP_ADMIN = join(ROOT, 'frontend', 'dist')
+const APP_ADMIN = join(ROOT, 'admin', 'dist')
 
 const server = createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`)

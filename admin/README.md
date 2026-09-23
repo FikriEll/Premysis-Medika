@@ -7,7 +7,7 @@ Data **tidak lagi mock lokal**: dashboard membaca dan menulis ke **REST API bers
 (`../server/index.js`) lewat proxy `/api`, sehingga pesanan, appointment, dan data
 lain yang dibuat pasien di aplikasi pasien langsung terlihat di sini - PRD N-05.
 
-> Dokumen acuan: `../PRD_Premysis_Medika_v1.1.md` (PRD v1.1).
+> Dokumen acuan: `../docs/PRD.md` (PRD v1.1).
 > Cakupan: 11 modul Dashboard Admin (PRD §6.2 & §22).
 
 ## Menjalankan
@@ -24,7 +24,7 @@ Buka http://localhost:5173 (dashboard) dan http://localhost:5174 (app pasien).
 Menjalankan dashboard sendirian:
 
 ```bash
-cd frontend
+cd admin
 npm install
 npm run dev          # perlu server API berjalan: npm run server (dari folder induk)
 ```
@@ -63,7 +63,7 @@ Autentikasi dashboard masih simulasi di sisi klien; otorisasi (RBAC) tetap berla
 ## Struktur proyek
 
 ```
-frontend/
+admin/
 ├── index.html
 ├── package.json
 ├── vite.config.js

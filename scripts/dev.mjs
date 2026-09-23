@@ -82,7 +82,7 @@ if (!siap) {
 } else {
   console.log(`Server API siap di ${API}`)
   console.log('Menjalankan dashboard admin (5173) dan aplikasi pasien (5174)...')
-  jalankan('admin', 'npm', ['--prefix', 'frontend', 'run', 'dev'])
+  jalankan('admin', 'npm', ['--prefix', 'admin', 'run', 'dev'])
   jalankan('pasien', 'npm', ['--prefix', 'pasien', 'run', 'dev'])
   console.log('\n  Dashboard admin : http://localhost:5173')
   console.log('  Aplikasi pasien : http://localhost:5174')
