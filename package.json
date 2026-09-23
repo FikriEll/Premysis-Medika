@@ -1,19 +1,13 @@
 {
-  "name": "premysis-medika",
+  "name": "premysis-medika-pasien",
   "private": true,
   "version": "2.0.0",
   "type": "module",
-  "description": "Sistem Informasi Pelayanan Kesehatan & E-Commerce Premysis Medika",
+  "description": "Aplikasi pasien (web) Premysis Medika",
   "scripts": {
-    "server": "node server/index.js",
-    "dev:admin": "npm --prefix admin run dev",
-    "dev:pasien": "npm --prefix pasien run dev",
-    "dev": "node scripts/dev.mjs",
-    "build:admin": "npm --prefix admin run build",
-    "build:pasien": "npm --prefix pasien run build",
-    "build:all": "npm run build:admin && npm run build:pasien",
-    "install:all": "npm install && npm --prefix admin install && npm --prefix pasien install",
-    "start": "node server/index.js"
+    "install:all": "npm --prefix pasien install",
+    "dev": "npm --prefix pasien run dev",
+    "build": "npm --prefix pasien run build"
   },
   "engines": {
     "node": ">=18"
