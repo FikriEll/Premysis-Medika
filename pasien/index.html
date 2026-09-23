@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#f4f7f8" />
+    <meta name="description" content="Aplikasi Pasien Premysis Medika: appointment, riwayat pemeriksaan, resep digital, jadwal vaksin bayi, dan toko produk kesehatan." />
+    <script>
+      // Terapkan tema sebelum paint pertama supaya tidak ada kedipan (FOUC).
+      (function () {
+        try {
+          var t = localStorage.getItem('premysis_tema')
+          if (t !== 'light' && t !== 'dark') {
+            t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+          }
+          if (t === 'dark') document.documentElement.classList.add('dark')
+          document.documentElement.style.colorScheme = t
+        } catch (e) {}
+      })()
+    </script>
+    <title>Premysis Medika · Aplikasi Pasien</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
