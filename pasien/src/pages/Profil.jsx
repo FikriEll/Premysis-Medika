@@ -2,45 +2,34 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../lib/store'
 import { useTema } from '../lib/theme'
-import { fmtTanggal, labelUsia } from '../../../shared/format'
+import { fmtTanggal } from '../../../shared/format'
 import {
-  Kartu, Tombol, Lembar, Konfirmasi, BarisInfo, BarisTautan, JudulSeksi,
-  Lencana, Kosong, AvatarPasien,
+  Kartu, Tombol, Konfirmasi, BarisInfo, BarisTautan, JudulSeksi, AvatarPasien,
 } from '../components/ui'
 import {
-  IconEdit, IconKeluar, IconBayi, IconMatahari, IconBulan,
-  IconPanahKanan, IconNotifikasi, IconWhatsapp, IconInfo, IconProfil,
+  IconEdit, IconKeluar, IconMatahari, IconBulan, IconPanahKanan,
+  IconWhatsapp, IconInfo, IconProfil, IconGear, IconKirim, IconHati,
+  IconPesanan, IconTanya, IconTentang, IconDokumen, IconPerisai,
 } from '../components/Icons'
-import { IlustrasiBayi } from '../components/Ilustrasi'
-import { KLINIK } from '../lib/layanan'
 
-// F-11 Profil Saya - brief §17.
-//
-// Brief §17 meminta menampilkan: foto profil, nama lengkap, nomor HP,
-// tanggal lahir, jenis kelamin, alamat, dan data lain yang diperlukan
-// klinik; dengan satu tombol "Edit Profil".
-//
-// Catatan: foto profil pada data demo belum ada, jadi dipakai avatar
-// inisial (bukan foto palsu yang bisa menyesatkan pasien).
+// F-11 Profil Saya - e-commerce.
 export default function Profil() {
   const nav = useNavigate()
-  const { user, bayiSaya, logout, notifikasiSaya } = useStore()
+  const { user, logout, pesananSaya } = useStore()
   const { gelap, toggleTema } = useTema()
   const [keluarBuka, setKeluarBuka] = useState(false)
 
-  const belumDibaca = notifikasiSaya.filter((n) => !n.status_baca).length
-
   return (
-    <div className="space-y-5">
+    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       {/* --- Kartu identitas --- */}
-      <Kartu className="space-y-4">
-        <div className="flex items-center gap-4">
-          <AvatarPasien nama={user?.nama} size={72} />
+      <Kartu className="space-y-4 lg:col-span-2">
+        <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+          <AvatarPasien nama={user?.name} size={72} />
           <div className="min-w-0 flex-1">
-            <p className="text-[20.5px] font-bold leading-snug tracking-tight text-primary">{user?.nama}</p>
-            <p className="numeric mt-1 text-[16px] text-secondary">{user?.no_wa || '-'}</p>
+            <p className="text-[20.5px] font-bold leading-snug tracking-tight text-primary">{user?.name}</p>
+            <p className="numeric mt-1 text-[16px] text-secondary">{user?.phone || '-'}</p>
             <p className="mt-1 text-[15px] text-muted">
-              Terdaftar sejak {fmtTanggal(user?.tanggal_registrasi)}
+              Terdaftar sejak {fmtTanggal(user?.created_at)}
             </p>
           </div>
         </div>
@@ -51,87 +40,65 @@ export default function Profil() {
         </Tombol>
       </Kartu>
 
-      {/* --- Data pribadi (brief §17) --- */}
+      {/* --- Data pribadi --- */}
       <section>
         <JudulSeksi>Data Pribadi</JudulSeksi>
         <Kartu className="divide-y divide-[var(--border-hairline)] px-4 py-1.5">
-          <BarisInfo label="Nama lengkap">{user?.nama || '-'}</BarisInfo>
+          <BarisInfo label="Nama lengkap">{user?.name || '-'}</BarisInfo>
           <BarisInfo label="Nomor HP">
-            <span className="numeric">{user?.no_wa || '-'}</span>
-          </BarisInfo>
-          <BarisInfo label="Tanggal lahir">
-            <span className="numeric">{fmtTanggal(user?.tanggal_lahir)}</span>
-          </BarisInfo>
-          <BarisInfo label="Jenis kelamin">
-            {user?.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan'}
-          </BarisInfo>
-          <BarisInfo label="Alamat">{user?.alamat || '-'}</BarisInfo>
-          <BarisInfo label="Nomor NIK">
-            <span className="numeric">{user?.nik || '-'}</span>
+            <span className="numeric">{user?.phone || '-'}</span>
           </BarisInfo>
           <BarisInfo label="Email">
             <span className="break-all">{user?.email || '-'}</span>
           </BarisInfo>
+          <BarisInfo label="Total pesanan">
+            <span className="numeric">{pesananSaya.length}</span>
+          </BarisInfo>
         </Kartu>
         <p className="mt-2 flex items-start gap-2 text-[15.5px] leading-relaxed text-muted">
           <IconInfo size={17} className="mt-0.5 shrink-0" />
-          <span>Nomor NIK hanya dapat diubah oleh petugas klinik saat Anda datang.</span>
+          <span>Pastikan nomor HP dan email Anda aktif agar pesanan dapat dikonfirmasi.</span>
         </p>
-      </section>
-
-      {/* --- Data anak --- */}
-      <section>
-        <JudulSeksi
-          aksi={
-            <Tombol size="sm" variant="secondary" onClick={() => nav('/vaksinasi')}>
-              Kelola
-            </Tombol>
-          }
-        >
-          Data Anak
-        </JudulSeksi>
-        {bayiSaya.length === 0 ? (
-          <Kartu padat>
-            <Kosong
-              judul="Belum ada data anak"
-              pesan="Tambahkan data anak agar jadwal imunisasi tercatat dan diingatkan otomatis."
-              ilustrasi={<IlustrasiBayi size={124} />}
-              aksi={
-                <Tombol size="lg" onClick={() => nav('/vaksinasi')}>
-                  Daftarkan Anak
-                </Tombol>
-              }
-            />
-          </Kartu>
-        ) : (
-          <ul className="space-y-2.5">
-            {bayiSaya.map((b) => (
-              <li key={b.id}>
-                <Kartu padat>
-                  <BarisTautan onClick={() => nav('/vaksinasi')}>
-                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[var(--accent-soft)] text-accent">
-                      <IconBayi size={22} weight="bold" />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[17px] font-semibold text-primary">{b.nama}</span>
-                      <span className="block text-[15.5px] text-secondary">
-                        {labelUsia(b.tanggal_lahir)} · {b.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan'}
-                      </span>
-                    </span>
-                    <IconPanahKanan size={18} weight="bold" className="shrink-0 text-muted" />
-                  </BarisTautan>
-                </Kartu>
-              </li>
-            ))}
-          </ul>
-        )}
       </section>
 
       {/* --- Pengaturan --- */}
       <section>
         <JudulSeksi>Pengaturan</JudulSeksi>
         <Kartu padat>
-          <BarisTautan onClick={toggleTema}>
+          <BarisTautan onClick={() => nav('/pengaturan')}>
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full permukaan-1 text-accent">
+              <IconGear size={22} weight="bold" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[17px] font-semibold text-primary">Pengaturan Akun</span>
+              <span className="block text-[15.5px] text-secondary">Ganti password dan preferensi notifikasi</span>
+            </span>
+            <IconPanahKanan size={18} weight="bold" className="shrink-0 text-muted" />
+          </BarisTautan>
+
+          <BarisTautan onClick={() => nav('/pengaturan/pengiriman')} className="border-t border-hairline">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full permukaan-sky">
+              <IconKirim size={22} weight="bold" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[17px] font-semibold text-primary">Pengaturan Pengiriman</span>
+              <span className="block text-[15.5px] text-secondary">Alamat, metode kirim, dan biayanya</span>
+            </span>
+            <IconPanahKanan size={18} weight="bold" className="shrink-0 text-muted" />
+          </BarisTautan>
+
+          <BarisTautan onClick={() => nav('/wishlist')} className="border-t border-hairline">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full permukaan-coral">
+              <IconHati size={22} weight="bold" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[17px] font-semibold text-primary">Produk Favorit</span>
+              <span className="block text-[15.5px] text-secondary">Obat yang Anda simpan untuk dibeli nanti</span>
+            </span>
+            <IconPanahKanan size={18} weight="bold" className="shrink-0 text-muted" />
+          </BarisTautan>
+
+          <BarisTautan onClick={toggleTema} className="border-t border-hairline">
             <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full permukaan-1 text-accent">
               {gelap ? <IconMatahari size={21} weight="bold" /> : <IconBulan size={21} weight="bold" />}
             </span>
@@ -139,66 +106,107 @@ export default function Profil() {
               <span className="block text-[17px] font-semibold text-primary">Tampilan</span>
               <span className="block text-[15.5px] text-secondary">Mode {gelap ? 'gelap' : 'terang'}</span>
             </span>
-            <Lencana tone="neutral">{gelap ? 'Gelap' : 'Terang'}</Lencana>
+            <span className="shrink-0 text-[15.5px] font-semibold text-secondary">{gelap ? 'Gelap' : 'Terang'}</span>
           </BarisTautan>
 
-          <BarisTautan onClick={() => nav('/notifikasi')} className="border-t border-hairline">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full permukaan-1 text-accent">
-              <IconNotifikasi size={21} weight="bold" />
+          <BarisTautan onClick={() => nav('/pesanan')} className="border-t border-hairline">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full permukaan-honey">
+              <IconPesanan size={22} weight="bold" />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block text-[17px] font-semibold text-primary">Pemberitahuan</span>
-              <span className="block text-[15.5px] text-secondary">
-                {belumDibaca > 0 ? `${belumDibaca} belum dibaca` : 'Tidak ada yang baru'}
-              </span>
+              <span className="block text-[17px] font-semibold text-primary">Pesanan Saya</span>
+              <span className="block text-[15.5px] text-secondary">Lihat semua pesanan dan statusnya</span>
             </span>
-            {belumDibaca > 0 && <Lencana tone="rose">{belumDibaca}</Lencana>}
+            <IconPanahKanan size={18} weight="bold" className="shrink-0 text-muted" />
           </BarisTautan>
         </Kartu>
       </section>
 
       {/* --- Bantuan --- */}
       <section>
-        <JudulSeksi>Bantuan</JudulSeksi>
+        <JudulSeksi>Bantuan &amp; Informasi</JudulSeksi>
+        <Kartu padat>
+          <BarisTautan onClick={() => nav('/faq')}>
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full permukaan-sky">
+              <IconTanya size={22} weight="bold" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[17px] font-semibold text-primary">Pertanyaan Umum</span>
+              <span className="block text-[15.5px] text-secondary">Jawaban cepat soal pesanan dan resep</span>
+            </span>
+            <IconPanahKanan size={18} weight="bold" className="shrink-0 text-muted" />
+          </BarisTautan>
+
+          <BarisTautan onClick={() => nav('/tentang')} className="border-t border-hairline">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full permukaan-mint">
+              <IconTentang size={22} weight="bold" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[17px] font-semibold text-primary">Tentang Kami</span>
+              <span className="block text-[15.5px] text-secondary">Profil, visi, dan misi apotek</span>
+            </span>
+            <IconPanahKanan size={18} weight="bold" className="shrink-0 text-muted" />
+          </BarisTautan>
+
+          <BarisTautan onClick={() => nav('/syarat')} className="border-t border-hairline">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full permukaan-peach">
+              <IconDokumen size={22} weight="bold" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[17px] font-semibold text-primary">Syarat &amp; Ketentuan</span>
+              <span className="block text-[15.5px] text-secondary">Aturan penggunaan layanan</span>
+            </span>
+            <IconPanahKanan size={18} weight="bold" className="shrink-0 text-muted" />
+          </BarisTautan>
+
+          <BarisTautan onClick={() => nav('/privasi')} className="border-t border-hairline">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full permukaan-coral">
+              <IconPerisai size={22} weight="bold" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[17px] font-semibold text-primary">Kebijakan Privasi</span>
+              <span className="block text-[15.5px] text-secondary">Cara kami menjaga data Anda</span>
+            </span>
+            <IconPanahKanan size={18} weight="bold" className="shrink-0 text-muted" />
+          </BarisTautan>
+        </Kartu>
+
         <a
-          href={KLINIK.tautanWA('Halo, saya pasien Premysis Medika dan butuh bantuan.')}
+          href="https://wa.me/6281211112222?text=Halo%2C%20saya%20pelanggan%20Apotek%20Premysis%20dan%20butuh%20bantuan."
           target="_blank"
           rel="noreferrer"
-          className="flex items-center gap-3 rounded-[var(--radius-card)] border border-hairline surface-raised px-4 py-4"
+          className="mt-2.5 flex items-center gap-3 rounded-[var(--radius-card)] border border-hairline surface-raised px-4 py-4"
         >
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[var(--color-signal-green-solid)] text-white">
             <IconWhatsapp size={22} weight="bold" />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block text-[17px] font-semibold text-primary">Hubungi Klinik</span>
-            <span className="block text-[15.5px] text-secondary">{KLINIK.telepon}</span>
+            <span className="block text-[17px] font-semibold text-primary">Hubungi Apotek</span>
+            <span className="block text-[15.5px] text-secondary">0812-1111-2222</span>
           </span>
           <IconPanahKanan size={18} weight="bold" className="shrink-0 text-muted" />
         </a>
       </section>
 
-      <Tombol variant="secondary" size="lg" penuh onClick={() => setKeluarBuka(true)}>
+      <Tombol variant="secondary" size="lg" penuh className="lg:col-span-2" onClick={() => setKeluarBuka(true)}>
         <IconKeluar size={20} weight="bold" />
         Keluar dari Akun
       </Tombol>
 
-      <p className="flex items-start gap-2 pb-2 text-[15px] leading-relaxed text-muted">
+      <p className="flex items-start gap-2 pb-2 text-[15px] leading-relaxed text-muted lg:col-span-2">
         <IconProfil size={17} className="mt-0.5 shrink-0" />
-        <span>
-          Aplikasi Pasien Premysis Medika. Data pada aplikasi ini adalah contoh untuk keperluan
-          pengembangan.
-        </span>
+        <span>Aplikasi Pelanggan Apotek Premysis Medika.</span>
       </p>
 
       <Konfirmasi
         buka={keluarBuka}
         onTutup={() => setKeluarBuka(false)}
-        onYa={() => {
-          logout()
+        onYa={async () => {
+          await logout()
           nav('/masuk', { replace: true })
         }}
         judul="Keluar dari akun?"
-        pesan="Anda perlu masuk kembali untuk membuat janji temu atau berbelanja."
+        pesan="Anda perlu masuk kembali untuk berbelanja dan melihat pesanan."
         labelYa="Ya, Keluar"
       />
     </div>

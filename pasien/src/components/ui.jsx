@@ -483,6 +483,68 @@ export function KartuAksi({ Ikon, judul, ket, onClick, warna = 'permukaan-1', cl
 }
 
 // ---------------------------------------------------------------
+// Kepala halaman konten (Tentang, Kontak, FAQ, dan seterusnya).
+//
+// Satu pola untuk semua halaman statis: ilustrasi di kanan, judul
+// dan pengantar di kiri, dalam satu kartu tint rata (bukan
+// gradient, sesuai brief). Ilustrasi bersifat dekoratif karena
+// judulnya sudah menyampaikan makna yang sama.
+// ---------------------------------------------------------------
+export function KepalaHalaman({ judul, pengantar, ilustrasi, aksi, className = '' }) {
+  return (
+    <section className={`permukaan-sambutan overflow-hidden rounded-[var(--radius-shell)] border border-hairline ${className}`}>
+      <div className="flex items-center gap-3">
+        <div className="min-w-0 flex-1 px-5 py-5">
+          <h1 className="text-[23px] font-bold leading-snug tracking-tight text-primary">{judul}</h1>
+          {pengantar && (
+            <p className="mt-2 max-w-[34ch] text-[16px] leading-relaxed text-secondary">{pengantar}</p>
+          )}
+          {aksi && <div className="mt-4">{aksi}</div>}
+        </div>
+        {ilustrasi && <div className="shrink-0 pr-2">{ilustrasi}</div>}
+      </div>
+    </section>
+  )
+}
+
+// ---------------------------------------------------------------
+// Baris fakta berlabel ikon (kontak, informasi pengiriman).
+// ---------------------------------------------------------------
+export function BarisFakta({ Ikon, label, nilai, children, warna = 'permukaan-1' }) {
+  return (
+    <div className="flex items-start gap-3.5 py-3.5">
+      <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${warna}`}>
+        <Ikon size={21} weight="bold" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-[15.5px] font-medium text-secondary">{label}</p>
+        <p className="mt-0.5 text-[17px] font-semibold leading-snug text-primary">{nilai || children}</p>
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------
+// Peringkat bintang. Selalu disertai angka, jadi warna dan bentuk
+// bukan satu-satunya pembawa makna (brief §22).
+// ---------------------------------------------------------------
+export function Bintang({ nilai = 0, size = 17, className = '' }) {
+  const penuh = Math.round(Number(nilai) || 0)
+  return (
+    <span className={`inline-flex items-center gap-0.5 ${className}`} aria-label={`${nilai} dari 5`}>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <svg key={i} width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path
+            d="M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 17.6 6.1 20.7l1.2-6.6L2.5 9.5l6.6-.9Z"
+            fill={i <= penuh ? 'var(--color-signal-amber)' : 'var(--border-strong)'}
+          />
+        </svg>
+      ))}
+    </span>
+  )
+}
+
+// ---------------------------------------------------------------
 // Kotak pilihan (wizard & checkout).
 // Terpilih = border teal + tanda centang, bukan warna saja.
 // ---------------------------------------------------------------

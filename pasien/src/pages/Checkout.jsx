@@ -1,180 +1,199 @@
-import { useEffect, useState, lazy, Suspense } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../lib/store'
 import { api } from '../lib/api'
 import { fmtRupiah } from '../../../shared/format'
 import {
-  Kartu, Tombol, Kolom, Input, AreaTeks, JudulSeksi, BarisInfo, PilihanKotak, Konfirmasi, Lencana,
+  Kartu, Tombol, Kolom, Input, AreaTeks, JudulSeksi, BarisInfo, PilihanKotak, Konfirmasi, Lencana, Memuat,
 } from '../components/ui'
 import {
-  IconLokasi, IconLokasiSaya, IconKirim, IconDompet, IconPeringatan, IconKembali,
-  IconCentangBulat, IconJam,
+  IconLokasi, IconKirim, IconDompet, IconPeringatan, IconKembali,
+  IconCentangBulat, IconJam, IconTambah,
 } from '../components/Icons'
-import { KLINIK } from '../lib/layanan'
 
-// Peta dimuat hanya saat benar-benar dipakai, supaya pasien yang
-// memilih "Ambil di Klinik" tidak mengunduh pustaka peta (~150 kB).
-const PetaLokasi = lazy(() => import('../components/PetaLokasi'))
-
-// Kerangka peta sambil menunggu pustaka selesai diunduh.
-function KerangkaPeta({ tinggi = 260 }) {
-  return (
-    <div
-      className="flex items-center justify-center rounded-[var(--radius-card)] border border-strong surface-sunken"
-      style={{ height: tinggi }}
-      role="status"
-    >
-      <p className="text-[16px] text-secondary">Menyiapkan peta...</p>
-    </div>
-  )
-}
-
-// F-08 Checkout - brief §13 (3 langkah).
+// F-08 Checkout - 3 langkah.
 //
-//   1. Ambil di Klinik atau Kirim ke Alamat (dengan peta + jarak)
-//   2. Cara bayar
-//   3. Konfirmasi pesanan
+//   1. Terima Pesanan (ambil di apotek / kirim ke alamat)
+//   2. Cara Bayar (Transfer/online atau COD bila diizinkan)
+//   3. Konfirmasi Pesanan
 //
-// Dua aturan dari pemilik klinik ditegakkan di sini DAN di server:
-//
-//   a. Pembayaran Tunai hanya untuk "Ambil di Klinik". Kalau barang
-//      dikirim, uang harus sudah diterima sebelum kurir berangkat,
-//      jadi pilihannya Transfer saja.
-//   b. Jarak ke klinik menentukan cara kirim dan ongkirnya. Kalau
-//      perjalanannya lebih dari 1 hari, pesanan tidak boleh dibuat.
-//
-// Ongkir TIDAK dihitung di sini. Angkanya datang dari server
-// (POST /api/pengiriman/hitung) supaya pasien tidak bisa memalsukan
-// jarak, dan supaya angka di layar sama dengan yang ditegakkan saat
-// checkout.
+// Semua aturan bisnis (stok, COD, resep, promo, ongkir) ditegakkan
+// oleh server apotek. Halaman ini hanya memandu; ongkir dihitung
+// server lewat /shipping/calculate agar tidak bisa dipalsukan klien.
 const LANGKAH = ['Terima Pesanan', 'Cara Bayar', 'Konfirmasi Pesanan']
 
 export default function Checkout() {
   const nav = useNavigate()
-  const { itemKeranjang, subtotal, user, checkout, beriToast } = useStore()
+  const {
+    itemKeranjang, subtotal, beratKeranjang, adaProdukResep, alamat,
+    tambahAlamat, checkout, beriToast,
+  } = useStore()
+
   const [langkah, setLangkah] = useState(1)
-  const [ambil, setAmbil] = useState('Ambil di Klinik')
-  const [bayar, setBayar] = useState('Transfer Bank')
-  const [alamat, setAlamat] = useState(user?.alamat || '')
-  const [catatan, setCatatan] = useState('')
+  const [ringkasan, setRingkasan] = useState(null)
+  const [memuat, setMemuat] = useState(true)
   const [galat, setGalat] = useState('')
   const [sibuk, setSibuk] = useState(false)
   const [tanya, setTanya] = useState(false)
 
-  // Titik lokasi kirim + hasil hitungan server.
-  const [titik, setTitik] = useState(null)
-  const [info, setInfo] = useState(null)
+  // Langkah 1
+  const [mode, setMode] = useState('ambil') // 'ambil' | 'kirim'
+  const [alamatId, setAlamatId] = useState('')
+  const [alamatBaru, setAlamatBaru] = useState(false)
+  const [form, setForm] = useState({ recipient_name: '', phone: '', address_line: '', city: '', province: '', postal_code: '' })
+  const [metodeId, setMetodeId] = useState('')
+
+  // Langkah 2
+  const [bayar, setBayar] = useState('midtrans')
+  const [promoKode, setPromoKode] = useState('')
+  const [promo, setPromo] = useState(null)
+  const [promoGalat, setPromoGalat] = useState('')
+  const [catatan, setCatatan] = useState('')
+
+  // Ongkir dari server
+  const [ongkir, setOngkir] = useState(null)
   const [hitung, setHitung] = useState(false)
-  const [cariLokasi, setCariLokasi] = useState(false)
-  const [galatPeta, setGalatPeta] = useState('')
 
-  const kirim = ambil === 'Dikirim'
-
-  // Setiap titik berubah, tanya server: berapa jaraknya, kena
-  // ongkir berapa, dan boleh dikirim atau tidak.
+  // Muat ringkasan checkout dari server (alamat + metode kirim + promo).
   useEffect(() => {
-    if (!kirim || !titik) {
-      setInfo(null)
+    let batal = false
+    api
+      .ringkasanCheckout()
+      .then((r) => {
+        if (batal) return
+        setRingkasan(r)
+        setAlamatId(r.addresses?.find((a) => a.is_default)?.id || r.addresses?.[0]?.id || '')
+        setMetodeId(r.shipping_methods?.[0]?.id || '')
+        setGalat('')
+      })
+      .catch((e) => !batal && setGalat(e.message))
+      .finally(() => !batal && setMemuat(false))
+    return () => {
+      batal = true
+    }
+  }, [])
+
+  const metode = ringkasan?.shipping_methods?.find((m) => m.id === Number(metodeId))
+  const pickup = metode?.code === 'PICKUP'
+  const codBoleh = !!metode?.is_cod_available
+
+  // Metode kirim harus cocok dengan pilihan terima pesanan:
+  // "Ambil di Apotek" memakai PICKUP (ongkir 0), "Kirim ke Alamat"
+  // memakai kurir. Tanpa ini, pengambilan di apotek bisa ikut dikenai
+  // ongkos kirim kurir.
+  useEffect(() => {
+    const daftar = ringkasan?.shipping_methods || []
+    if (daftar.length === 0) return
+    const sekarang = daftar.find((m) => m.id === Number(metodeId))
+    if (mode === 'ambil' && sekarang?.code !== 'PICKUP') {
+      const p = daftar.find((m) => m.code === 'PICKUP')
+      if (p) setMetodeId(p.id)
+    } else if (mode === 'kirim' && sekarang?.code === 'PICKUP') {
+      const k = daftar.find((m) => m.code !== 'PICKUP')
+      if (k) setMetodeId(k.id)
+    }
+  }, [mode, ringkasan, metodeId])
+
+  // Kalau mode berubah / metode kirim berubah, hitung ongkir di server.
+  useEffect(() => {
+    if (!metode || mode !== 'kirim') {
+      setOngkir(null)
       return
     }
     let batal = false
     setHitung(true)
-    setGalatPeta('')
     api
-      .hitungPengiriman(titik.lat, titik.lng)
-      .then((h) => {
-        if (!batal) setInfo(h)
-      })
-      .catch((e) => {
-        if (!batal) setGalatPeta(e.message || 'Tidak bisa menghitung jarak.')
-      })
-      .finally(() => {
-        if (!batal) setHitung(false)
-      })
+      .hitungKirim(metode.id, beratKeranjang || 0)
+      .then((r) => !batal && setOngkir(r.cost))
+      .catch(() => !batal && setOngkir(null))
+      .finally(() => !batal && setHitung(false))
     return () => {
       batal = true
     }
-  }, [titik, kirim])
+  }, [metode, mode, beratKeranjang])
 
-  // Saat pindah ke "Ambil di Klinik", Tunai selalu aman.
-  // Saat pindah ke "Kirim ke Alamat", Tunai tidak berlaku.
+  // COD tidak berlaku bila metode kirim tidak mendukungnya.
   useEffect(() => {
-    if (kirim && bayar === 'Tunai') setBayar('Transfer Bank')
-  }, [kirim, bayar])
+    if (bayar === 'cod' && !codBoleh) setBayar('midtrans')
+  }, [bayar, codBoleh])
 
-  const biayaKirim = kirim && info?.boleh ? info.ongkir : 0
-  const total = subtotal + biayaKirim
-  const kejauhan = kirim && info && !info.boleh
+  const biayaKirim = mode === 'kirim' ? ongkir || 0 : 0
+  const diskon = promo?.discount || 0
+  const total = Math.max(0, subtotal + biayaKirim - diskon)
 
-  const pakaiLokasiSaya = () => {
-    setGalatPeta('')
-    if (!navigator.geolocation) {
-      setGalatPeta('Ponsel ini tidak bisa membaca lokasi otomatis. Silakan ketuk peta untuk menandai lokasi kirim.')
-      return
+  const cekPromo = async () => {
+    setPromoGalat('')
+    setPromo(null)
+    if (!promoKode.trim()) return
+    try {
+      const r = await api.validasiPromo(promoKode.trim(), subtotal)
+      setPromo({ ...r.promo, discount: r.discount })
+      beriToast(`Promo ${r.promo.code} dipakai.`, 'sukses')
+    } catch (e) {
+      setPromoGalat(e.message)
     }
-    setCariLokasi(true)
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setTitik({ lat: pos.coords.latitude, lng: pos.coords.longitude })
-        setCariLokasi(false)
-      },
-      () => {
-        setGalatPeta('Izin lokasi tidak diberikan. Silakan ketuk peta untuk menandai lokasi kirim.')
-        setCariLokasi(false)
-      },
-      { enableHighAccuracy: true, timeout: 10000 },
-    )
   }
 
-  if (itemKeranjang.length === 0) {
-    return (
-      <Kartu>
-        <p className="text-[17px] leading-relaxed text-secondary">
-          Keranjang Anda masih kosong, belum ada yang bisa dipesan.
-        </p>
-        <Tombol className="mt-4" size="lg" penuh onClick={() => nav('/toko')}>
-          Beli Obat
-        </Tombol>
-      </Kartu>
-    )
+  const simpanAlamatBaru = async () => {
+    if (!form.recipient_name.trim() || !form.phone.trim() || !form.address_line.trim()) {
+      setGalat('Lengkapi nama penerima, nomor HP, dan alamat.')
+      return null
+    }
+    await tambahAlamat({
+      label: 'Rumah',
+      recipient_name: form.recipient_name.trim(),
+      phone: form.phone.trim(),
+      address_line: form.address_line.trim(),
+      city: form.city.trim(),
+      province: form.province.trim(),
+      postal_code: form.postal_code.trim(),
+      is_default: alamat.length === 0,
+    })
+    const daftar = await api.alamat()
+    const baru = (Array.isArray(daftar) ? daftar : daftar?.data || []).slice(-1)[0]
+    setAlamatBaru(false)
+    if (baru) setAlamatId(baru.id)
+    return baru
   }
 
   const proses = async () => {
     setGalat('')
-    if (kirim && !alamat.trim()) {
-      setGalat('Alamat pengiriman wajib diisi bila memilih Kirim ke Alamat.')
-      setLangkah(1)
-      return
-    }
-    if (kirim && !titik) {
-      setGalat('Tandai lokasi kirim di peta dulu, supaya klinik tahu jaraknya.')
-      setLangkah(1)
-      return
-    }
-    if (kejauhan) {
-      setGalat(info.alasan)
+    if (mode === 'kirim' && !alamatId && !alamatBaru) {
+      setGalat('Pilih atau tambahkan alamat pengiriman dulu.')
       setLangkah(1)
       return
     }
     setSibuk(true)
     try {
-      const pesanan = await checkout({
-        id_pasien: user.id,
-        items: itemKeranjang.map((x) => ({ id_produk: x.id_produk, jumlah: x.jumlah })),
-        metode_ambil: ambil,
-        metode_bayar: bayar,
-        alamat_pengiriman: kirim ? alamat.trim() : '-',
-        titik_tujuan: kirim ? titik : null,
-        catatan: catatan.trim(),
-      })
+      let idKirim = alamatId
+      if (mode === 'kirim' && alamatBaru) {
+        const baru = await simpanAlamatBaru()
+        if (!baru) {
+          setSibuk(false)
+          return
+        }
+        idKirim = baru.id
+      }
+
+      const payload = {
+        shipping_method_id: Number(metodeId),
+        payment_method: bayar,
+        promo_code: promo?.code || promoKode.trim() || undefined,
+        note: catatan.trim() || undefined,
+      }
+      if (mode === 'kirim') payload.address_id = idKirim
+      else {
+        payload.recipient_name = ringkasan?.addresses?.[0]?.recipient_name || 'Ambil di Apotek'
+        payload.recipient_phone = ringkasan?.addresses?.[0]?.phone || '081211112222'
+        payload.full_address = 'Ambil sendiri di Apotek Premysis Medika'
+      }
+
+      const pesanan = await checkout(payload)
       setTanya(false)
-      // Transfer Bank: arahkan langsung ke langkah pembayaran supaya
-      // pasien tidak lupa membayar (Fitur Minimal #5). Tunai tetap ke
-      // daftar pesanan karena dibayar saat mengambil di klinik.
-      if (pesanan.metode_bayar === 'Transfer Bank') {
-        nav(`/pesanan/${pesanan.id}/bayar`, { replace: true })
+      if (pesanan.payment_method === 'midtrans' && pesanan.status === 'pending_payment') {
+        nav(`/pesanan/${pesanan.order_number}/bayar`, { replace: true })
       } else {
-        nav('/pesanan', { replace: true, state: { sorot: pesanan.id } })
+        nav('/pesanan', { replace: true })
       }
     } catch (e) {
       setGalat(e.message)
@@ -185,11 +204,25 @@ export default function Checkout() {
     }
   }
 
-  const bisaLanjut =
-    langkah === 1 ? !kirim || (alamat.trim() && titik && info?.boleh) : true
+  if (itemKeranjang.length === 0) {
+    return (
+      <Kartu>
+        <p className="text-[17px] leading-relaxed text-secondary">
+          Keranjang Anda masih kosong, belum ada yang bisa dipesan.
+        </p>
+        <Tombol className="mt-4" size="lg" penuh onClick={() => nav('/toko')}>
+          Belanja Sekarang
+        </Tombol>
+      </Kartu>
+    )
+  }
+
+  if (memuat) return <Memuat baris={4} />
+
+  const bisaLanjut = langkah === 1 ? mode === 'ambil' || !!alamatId || alamatBaru : true
 
   return (
-    <div className="space-y-5">
+    <div className="mx-auto w-full max-w-[820px] space-y-5">
       {/* Indikator langkah */}
       <div>
         <div className="flex items-baseline justify-between gap-3">
@@ -210,7 +243,7 @@ export default function Checkout() {
         </div>
       </div>
 
-      {/* --- Langkah 1: ambil atau kirim --- */}
+      {/* --- Langkah 1: terima pesanan --- */}
       {langkah === 1 && (
         <section className="space-y-3">
           <h2 className="text-[20.5px] font-bold tracking-tight text-primary">
@@ -220,158 +253,139 @@ export default function Checkout() {
           <div className="space-y-2.5">
             <PilihanKotak
               Ikon={IconLokasi}
-              judul="Ambil di Klinik"
-              ket="Tanpa biaya kirim. Bisa bayar tunai di klinik."
-              terpilih={ambil === 'Ambil di Klinik'}
-              onClick={() => setAmbil('Ambil di Klinik')}
+              judul="Ambil di Apotek"
+              ket="Tanpa biaya kirim. Datang dan ambil pesanan Anda."
+              terpilih={mode === 'ambil'}
+              onClick={() => setMode('ambil')}
             />
             <PilihanKotak
               Ikon={IconKirim}
               judul="Kirim ke Alamat"
-              ket="Diantar kurir. Ongkos kirim sesuai jarak dari klinik."
-              terpilih={ambil === 'Dikirim'}
-              onClick={() => setAmbil('Dikirim')}
+              ket="Diantar kurir. Ongkos kirim sesuai berat & metode."
+              terpilih={mode === 'kirim'}
+              onClick={() => setMode('kirim')}
             />
           </div>
 
-          {ambil === 'Ambil di Klinik' && (
+          {mode === 'ambil' && (
             <div className="rounded-[var(--radius-control)] surface-sunken px-4 py-3.5">
               <p className="text-[16px] font-semibold text-primary">Alamat pengambilan</p>
-              <p className="mt-1 text-[16px] leading-relaxed text-secondary">{KLINIK.alamat}</p>
-              <p className="numeric mt-1 text-[16px] text-secondary">{KLINIK.telepon}</p>
+              <p className="mt-1 text-[16px] leading-relaxed text-secondary">
+                Apotek Premysis Medika — Jl. Kesehatan Raya No. 45, Depok
+              </p>
+              <p className="numeric mt-1 text-[16px] text-secondary">0812-1111-2222</p>
             </div>
           )}
 
-          {kirim && (
+          {mode === 'kirim' && (
             <>
-              <Kolom
-                label="Alamat pengiriman"
-                wajib
-                htmlFor="alamat"
-                bantuan="Tulis nama jalan, nomor rumah, kelurahan, dan kota."
-              >
-                <AreaTeks
-                  id="alamat"
-                  value={alamat}
-                  onChange={(e) => setAlamat(e.target.value)}
-                  placeholder="Contoh: Jl. Melati No. 12, Depok"
-                />
-              </Kolom>
-
-              {/* Peta penanda lokasi kirim */}
-              <div className="space-y-2.5">
-                <div className="flex items-baseline justify-between gap-3">
-                  <p className="text-[17px] font-bold text-primary">Tandai lokasi kirim</p>
-                  <Lencana tone={info?.boleh === false ? 'rose' : 'neutral'} ikon={IconLokasi}>
-                    {info?.boleh === false ? 'Di luar jangkauan' : 'Peta'}
-                  </Lencana>
+              {/* Pilih alamat tersimpan */}
+              {alamat.length > 0 && !alamatBaru && (
+                <div className="space-y-2.5">
+                  <p className="text-[17px] font-bold text-primary">Alamat pengiriman</p>
+                  {alamat.map((a) => (
+                    <PilihanKotak
+                      key={a.id}
+                      Ikon={IconLokasi}
+                      judul={`${a.label || 'Alamat'} — ${a.recipient_name}`}
+                      ket={a.full_address}
+                      terpilih={alamatId === a.id}
+                      onClick={() => setAlamatId(a.id)}
+                    />
+                  ))}
+                  <Tombol variant="secondary" penuh onClick={() => setAlamatBaru(true)}>
+                    <IconTambah size={19} weight="bold" />
+                    Pakai Alamat Baru
+                  </Tombol>
                 </div>
-                <p className="text-[16px] leading-relaxed text-secondary">
-                  Ketuk peta untuk menaruh pin, atau tekan tombol di bawah untuk memakai
-                  lokasi Anda sekarang. Titik ini dipakai untuk menghitung jarak dari klinik.
-                </p>
+              )}
 
-                <Suspense fallback={<KerangkaPeta tinggi={260} />}>
-                  <PetaLokasi titikAwal={titik} onPilih={setTitik} tinggi={260} />
-                </Suspense>
-
-                <Tombol
-                  variant="secondary"
-                  size="lg"
-                  penuh
-                  disabled={cariLokasi}
-                  onClick={pakaiLokasiSaya}
-                >
-                  <IconLokasiSaya size={20} weight="bold" />
-                  {cariLokasi ? 'Mencari lokasi...' : 'Pakai Lokasi Saya'}
-                </Tombol>
-
-                {galatPeta && (
-                  <p role="alert" className="text-[16px] leading-relaxed text-[var(--color-signal-rose)]">
-                    {galatPeta}
-                  </p>
-                )}
-
-                {!titik && !galatPeta && (
-                  <p className="text-[16px] leading-relaxed text-muted">
-                    Lokasi kirim belum ditandai.
-                  </p>
-                )}
-
-                {hitung && (
-                  <p className="text-[16px] text-secondary" role="status">
-                    Menghitung jarak dari klinik...
-                  </p>
-                )}
-
-                {/* Hasil hitungan: boleh kirim */}
-                {info?.boleh && (
-                  <div className="rounded-[var(--radius-card)] surface-1 px-4 py-3.5">
-                    <div className="flex items-baseline justify-between gap-3">
-                      <p className="text-[17px] font-bold text-primary">
-                        {info.jarak_km} km dari klinik
-                      </p>
-                      <Lencana tone="green">{info.label_zona}</Lencana>
-                    </div>
-                    <dl className="mt-2.5 space-y-1.5 text-[16px] leading-relaxed">
-                      <div className="flex justify-between gap-3">
-                        <dt className="text-secondary">Dikirim dengan</dt>
-                        <dd className="text-right font-semibold text-primary">{info.kurir}</dd>
-                      </div>
-                      <div className="flex justify-between gap-3">
-                        <dt className="text-secondary">Perkiraan sampai</dt>
-                        <dd className="numeric text-right font-semibold text-primary">
-                          sekitar {info.estimasi_jam} jam
-                        </dd>
-                      </div>
-                      <div className="flex justify-between gap-3">
-                        <dt className="text-secondary">Ongkos kirim</dt>
-                        <dd className="numeric text-right font-semibold text-accent">
-                          {fmtRupiah(info.ongkir)}
-                        </dd>
-                      </div>
-                    </dl>
-                    <p className="mt-2.5 text-[15.5px] leading-relaxed text-muted">
-                      Ongkos kirim adalah perkiraan dari jarak. Tarif resmi kurir bisa berbeda
-                      sedikit dan akan dikonfirmasi klinik.
-                    </p>
+              {(alamatBaru || alamat.length === 0) && (
+                <Kartu className="space-y-4">
+                  <JudulSeksi>Alamat Baru</JudulSeksi>
+                  <Kolom label="Nama penerima" wajib htmlFor="rc">
+                    <Input id="rc" value={form.recipient_name} onChange={(e) => setForm((f) => ({ ...f, recipient_name: e.target.value }))} placeholder="Nama yang menerima paket" />
+                  </Kolom>
+                  <Kolom label="Nomor HP penerima" wajib htmlFor="ph">
+                    <Input id="ph" inputMode="tel" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} placeholder="0812-3456-7890" />
+                  </Kolom>
+                  <Kolom label="Alamat lengkap" wajib htmlFor="ad" bantuan="Jalan, nomor rumah, RT/RW, kelurahan.">
+                    <AreaTeks id="ad" value={form.address_line} onChange={(e) => setForm((f) => ({ ...f, address_line: e.target.value }))} placeholder="Contoh: Jl. Melati No. 12" />
+                  </Kolom>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Kolom label="Kota" htmlFor="ct">
+                      <Input id="ct" value={form.city} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} placeholder="Depok" />
+                    </Kolom>
+                    <Kolom label="Provinsi" htmlFor="pv">
+                      <Input id="pv" value={form.province} onChange={(e) => setForm((f) => ({ ...f, province: e.target.value }))} placeholder="Jawa Barat" />
+                    </Kolom>
                   </div>
-                )}
-
-                {/* Hasil hitungan: kejauhan, tidak boleh pesan */}
-                {kejauhan && (
-                  <div
-                    role="alert"
-                    className="rounded-[var(--radius-card)] bg-[var(--color-signal-rose-soft)] px-4 py-3.5"
-                  >
-                    <p className="flex items-center gap-2.5 text-[17px] font-bold text-[var(--color-signal-rose)]">
-                      <IconPeringatan size={21} weight="bold" className="shrink-0" />
-                      Tidak bisa dikirim ke lokasi ini
-                    </p>
-                    <p className="mt-2 text-[16px] leading-relaxed text-[var(--color-signal-rose)]">
-                      {info.alasan}
-                    </p>
-                    <p className="mt-2 text-[16px] leading-relaxed text-[var(--color-signal-rose)]">
-                      {info.saran}
-                    </p>
-                    <Tombol
-                      className="mt-3"
-                      variant="secondary"
-                      size="lg"
-                      penuh
-                      onClick={() => {
-                        setAmbil('Ambil di Klinik')
-                        setTitik(null)
-                        setInfo(null)
-                      }}
-                    >
-                      <IconLokasi size={20} weight="bold" />
-                      Ganti ke Ambil di Klinik
+                  <Kolom label="Kode pos" htmlFor="pc">
+                    <Input id="pc" inputMode="numeric" value={form.postal_code} onChange={(e) => setForm((f) => ({ ...f, postal_code: e.target.value }))} placeholder="16411" />
+                  </Kolom>
+                  {alamat.length > 0 && (
+                    <Tombol variant="secondary" penuh onClick={() => setAlamatBaru(false)}>
+                      Pakai Alamat Tersimpan
                     </Tombol>
-                  </div>
-                )}
+                  )}
+                </Kartu>
+              )}
+
+              {/* Metode pengiriman */}
+              <div className="space-y-2.5">
+                <p className="text-[17px] font-bold text-primary">Pilih pengiriman</p>
+                {(ringkasan?.shipping_methods || []).filter((m) => m.code !== 'PICKUP').map((m) => (
+                  <PilihanKotak
+                    key={m.id}
+                    Ikon={IconKirim}
+                    judul={m.name}
+                    ket={`Estimasi ${m.est_days} · mulai ${fmtRupiah(m.base_cost)}${m.cost_per_kg ? ` + ${fmtRupiah(m.cost_per_kg)}/kg` : ''}`}
+                    terpilih={Number(metodeId) === m.id}
+                    onClick={() => setMetodeId(m.id)}
+                  />
+                ))}
               </div>
             </>
+          )}
+
+          {mode === 'ambil' && (
+            <div className="space-y-2.5">
+              <p className="text-[17px] font-bold text-primary">Metode</p>
+              {(ringkasan?.shipping_methods || []).filter((m) => m.code === 'PICKUP').map((m) => (
+                <PilihanKotak
+                  key={m.id}
+                  Ikon={IconLokasi}
+                  judul={m.name}
+                  ket={m.est_days}
+                  terpilih={Number(metodeId) === m.id}
+                  onClick={() => setMetodeId(m.id)}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Ringkasan ongkir */}
+          {mode === 'kirim' && (
+            <div className="rounded-[var(--radius-control)] surface-1 px-4 py-3.5">
+              <BarisInfo label="Berat total">
+                <span className="numeric">{(beratKeranjang / 1000).toFixed(2)} kg</span>
+              </BarisInfo>
+              <BarisInfo label="Ongkos kirim">
+                <span className="numeric font-semibold text-accent">
+                  {hitung ? 'Menghitung...' : ongkir != null ? fmtRupiah(ongkir) : '-'}
+                </span>
+              </BarisInfo>
+            </div>
+          )}
+
+          {adaProdukResep && (
+            <p className="flex items-start gap-2.5 rounded-[var(--radius-card)] bg-[var(--color-signal-amber-soft)] px-4 py-3.5 text-[16px] leading-relaxed text-[var(--color-signal-amber)]">
+              <IconPeringatan size={20} weight="bold" className="mt-0.5 shrink-0" />
+              <span>
+                Keranjang Anda memuat produk yang memerlukan resep. Unggah foto resep setelah pesanan
+                dibuat; apotek akan memverifikasinya sebelum memproses.
+              </span>
+            </p>
           )}
         </section>
       )}
@@ -385,36 +399,63 @@ export default function Checkout() {
           <div className="space-y-2.5">
             <PilihanKotak
               Ikon={IconDompet}
-              judul="Transfer Bank"
-              ket="Bayar lewat transfer, lalu kirim bukti ke klinik"
-              terpilih={bayar === 'Transfer Bank'}
-              onClick={() => setBayar('Transfer Bank')}
+              judul="Transfer / Pembayaran Online"
+              ket="Bayar lewat transfer bank atau kanal pembayaran online."
+              terpilih={bayar === 'midtrans'}
+              onClick={() => setBayar('midtrans')}
             />
-            {/* Tunai hanya untuk pengambilan di klinik (aturan pemilik
-                klinik). Saat barang dikirim, opsi ini disembunyikan. */}
-            {!kirim ? (
+            {codBoleh ? (
               <PilihanKotak
                 Ikon={IconDompet}
-                judul="Tunai"
-                ket="Bayar langsung saat mengambil pesanan di klinik"
-                terpilih={bayar === 'Tunai'}
-                onClick={() => setBayar('Tunai')}
+                judul="Bayar di Tempat (COD)"
+                ket="Bayar tunai saat pesanan diterima."
+                terpilih={bayar === 'cod'}
+                onClick={() => setBayar('cod')}
               />
             ) : (
               <div className="rounded-[var(--radius-control)] surface-sunken px-4 py-3.5">
                 <p className="flex items-center gap-2.5 text-[16px] leading-relaxed text-secondary">
                   <IconPeringatan size={19} weight="bold" className="shrink-0 text-muted" />
-                  <span>
-                    Pembayaran tunai tidak tersedia untuk pesanan yang dikirim. Uang harus
-                    sudah diterima klinik sebelum kurir berangkat, jadi silakan pakai Transfer
-                    Bank. Ingin bayar tunai? Pilih <strong className="font-semibold text-primary">Ambil di Klinik</strong>.
-                  </span>
+                  <span>Metode pengiriman yang dipilih tidak mendukung pembayaran di tempat (COD).</span>
                 </p>
               </div>
             )}
           </div>
 
-          <Kolom label="Catatan untuk klinik" htmlFor="catatan" bantuan="Boleh dikosongkan.">
+          {/* Promo */}
+          <Kartu className="space-y-3">
+            <JudulSeksi>Kode Promo</JudulSeksi>
+            <div className="flex items-end gap-2.5">
+              <div className="min-w-0 flex-1">
+                <Input
+                  value={promoKode}
+                  onChange={(e) => setPromoKode(e.target.value.toUpperCase())}
+                  placeholder="Mis. WELCOME10"
+                />
+              </div>
+              <Tombol onClick={cekPromo} disabled={!promoKode.trim()}>
+                Pakai
+              </Tombol>
+            </div>
+            {promoGalat && (
+              <p role="alert" className="text-[15.5px] leading-relaxed text-[var(--color-signal-rose)]">
+                {promoGalat}
+              </p>
+            )}
+            {promo && (
+              <p className="flex items-center justify-between gap-3 rounded-[var(--radius-control)] bg-[var(--color-signal-green-soft)] px-3.5 py-2.5 text-[15.5px] text-[var(--color-signal-green)]">
+                <span className="font-semibold">{promo.name}</span>
+                <span className="numeric font-bold">- {fmtRupiah(diskon)}</span>
+              </p>
+            )}
+            {(ringkasan?.promos || []).length > 0 && (
+              <p className="text-[15px] leading-relaxed text-muted">
+                Promo tersedia: {(ringkasan.promos || []).map((p) => p.code).join(', ')}
+              </p>
+            )}
+          </Kartu>
+
+          <Kolom label="Catatan untuk apotek" htmlFor="catatan" bantuan="Boleh dikosongkan.">
             <Input
               id="catatan"
               value={catatan}
@@ -436,15 +477,15 @@ export default function Checkout() {
             <JudulSeksi>Barang yang dipesan</JudulSeksi>
             <ul className="divide-y divide-[var(--border-hairline)]">
               {itemKeranjang.map((x) => (
-                <li key={x.id_produk} className="flex items-start justify-between gap-4 py-3">
+                <li key={x.id} className="flex items-start justify-between gap-4 py-3">
                   <span className="min-w-0">
-                    <span className="block text-[17px] font-medium text-primary">{x.produk.nama}</span>
+                    <span className="block text-[17px] font-medium text-primary">{x.product?.name}</span>
                     <span className="numeric block text-[15.5px] text-secondary">
-                      {x.jumlah} x {fmtRupiah(x.produk.harga)}
+                      {x.qty} x {fmtRupiah(x.product?.price || 0)}
                     </span>
                   </span>
                   <span className="numeric shrink-0 text-[17px] font-semibold text-primary">
-                    {fmtRupiah(x.produk.harga * x.jumlah)}
+                    {fmtRupiah(x.subtotal || (x.product?.price || 0) * x.qty)}
                   </span>
                 </li>
               ))}
@@ -452,23 +493,15 @@ export default function Checkout() {
           </Kartu>
 
           <Kartu className="divide-y divide-[var(--border-hairline)]">
-            <BarisInfo label="Cara terima">{kirim ? 'Kirim ke Alamat' : 'Ambil di Klinik'}</BarisInfo>
-            {kirim && <BarisInfo label="Alamat">{alamat}</BarisInfo>}
-            {kirim && info?.boleh && (
-              <>
-                <BarisInfo label="Jarak dari klinik">
-                  <span className="numeric">{info.jarak_km} km</span>
-                </BarisInfo>
-                <BarisInfo label="Dikirim dengan">{info.kurir}</BarisInfo>
-                <BarisInfo label="Perkiraan sampai">
-                  <span className="flex items-center justify-end gap-1.5">
-                    <IconJam size={18} weight="bold" className="text-muted" />
-                    sekitar {info.estimasi_jam} jam
-                  </span>
-                </BarisInfo>
-              </>
+            <BarisInfo label="Cara terima">{mode === 'kirim' ? 'Kirim ke Alamat' : 'Ambil di Apotek'}</BarisInfo>
+            {mode === 'kirim' && metode && <BarisInfo label="Pengiriman">{metode.name}</BarisInfo>}
+            {mode === 'kirim' && (
+              <BarisInfo label="Alamat">
+                {alamat.find((a) => a.id === Number(alamatId))?.full_address || 'Alamat baru diisi saat memesan'}
+              </BarisInfo>
             )}
-            <BarisInfo label="Cara bayar">{bayar}</BarisInfo>
+            <BarisInfo label="Cara bayar">{bayar === 'cod' ? 'Bayar di Tempat (COD)' : 'Transfer / Pembayaran Online'}</BarisInfo>
+            {promo && <BarisInfo label="Promo">{promo.code}</BarisInfo>}
             {catatan && <BarisInfo label="Catatan">{catatan}</BarisInfo>}
           </Kartu>
 
@@ -476,9 +509,16 @@ export default function Checkout() {
             <BarisInfo label="Subtotal">
               <span className="numeric">{fmtRupiah(subtotal)}</span>
             </BarisInfo>
-            <BarisInfo label="Ongkos kirim">
-              <span className="numeric">{biayaKirim ? fmtRupiah(biayaKirim) : 'Gratis'}</span>
-            </BarisInfo>
+            {mode === 'kirim' && (
+              <BarisInfo label="Ongkos kirim">
+                <span className="numeric">{biayaKirim ? fmtRupiah(biayaKirim) : 'Gratis'}</span>
+              </BarisInfo>
+            )}
+            {diskon > 0 && (
+              <BarisInfo label="Diskon promo">
+                <span className="numeric text-[var(--color-signal-green)]">- {fmtRupiah(diskon)}</span>
+              </BarisInfo>
+            )}
             <BarisInfo label="Total bayar" className="border-t border-hairline">
               <span className="numeric text-[22px] font-bold text-accent">{fmtRupiah(total)}</span>
             </BarisInfo>
@@ -488,9 +528,9 @@ export default function Checkout() {
             <IconPeringatan size={19} weight="bold" className="mt-0.5 shrink-0 text-muted" />
             <span>
               Pesanan akan berstatus <strong className="font-semibold text-primary">Menunggu Pembayaran</strong>.
-              {bayar === 'Transfer Bank'
-                ? ' Setelah pesanan dibuat, Anda langsung diarahkan ke halaman pembayaran untuk transfer dan unggah bukti.'
-                : ' Anda membayar tunai saat mengambil pesanan di klinik, lalu klinik menandainya sudah dibayar.'}
+              {bayar === 'midtrans'
+                ? ' Setelah pesanan dibuat, Anda langsung diarahkan ke halaman pembayaran.'
+                : ' Anda membayar saat pesanan diterima.'}
             </span>
           </p>
         </section>
@@ -509,16 +549,11 @@ export default function Checkout() {
       {/* Tombol tindakan */}
       <div className="space-y-2.5 pb-2">
         {langkah < 3 ? (
-          <Tombol
-            size="lg"
-            penuh
-            disabled={!bisaLanjut}
-            onClick={() => setLangkah((n) => n + 1)}
-          >
+          <Tombol size="lg" penuh disabled={!bisaLanjut} onClick={() => setLangkah((n) => n + 1)}>
             {langkah === 1 ? 'Lanjut ke Cara Bayar' : 'Lanjut ke Konfirmasi'}
           </Tombol>
         ) : (
-          <Tombol size="lg" penuh disabled={sibuk || kejauhan} onClick={() => setTanya(true)}>
+          <Tombol size="lg" penuh disabled={sibuk} onClick={() => setTanya(true)}>
             <IconCentangBulat size={21} weight="bold" />
             Buat Pesanan
           </Tombol>
@@ -543,7 +578,7 @@ export default function Checkout() {
         sibuk={sibuk}
         tone="primary"
         judul="Buat pesanan ini?"
-        pesan={`Pesanan sebesar ${fmtRupiah(total)} akan dibuat dengan cara bayar ${bayar}. Anda dapat membatalkan pesanan selama masih berstatus Menunggu Pembayaran.`}
+        pesan={`Pesanan sebesar ${fmtRupiah(total)} akan dibuat. Anda dapat membatalkan pesanan selama masih berstatus Menunggu Pembayaran.`}
         labelYa="Ya, Buat Pesanan"
       />
     </div>

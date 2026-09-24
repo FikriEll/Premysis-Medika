@@ -3,8 +3,9 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 // App pasien berjalan di port 5174.
-// Semua panggilan /api diteruskan ke server bersama (port 4000) supaya
-// data yang dilihat pasien sama dengan yang dilihat admin - PRD N-05.
+// Semua panggilan /api diteruskan ke server apotek (Laravel, port 8000)
+// supaya katalog, stok, harga, dan pesanan yang dilihat pelanggan
+// selalu sama dengan yang dilihat petugas apotek.
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
@@ -12,7 +13,7 @@ export default defineConfig({
     open: false,
     proxy: {
       '/api': {
-        target: process.env.API_URL || 'http://127.0.0.1:4000',
+        target: process.env.API_URL || 'http://127.0.0.1:8000',
         changeOrigin: true,
       },
     },
@@ -29,11 +30,6 @@ export default defineConfig({
         manualChunks: {
           react: ['react', 'react-dom', 'react-router-dom'],
           ikon: ['@phosphor-icons/react'],
-          // Peta dipisah dari kode aplikasi DAN dimuat hanya saat
-          // halaman Checkout memakainya (React.lazy). Pasien yang
-          // memilih "Ambil di Klinik" tidak perlu mengunduh Leaflet
-          // sama sekali.
-          peta: ['leaflet'],
         },
       },
     },

@@ -1,28 +1,20 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../lib/store'
-import { Kartu, Tombol, Kolom, Input, AreaTeks, Pilih, JudulSeksi } from '../components/ui'
+import { Kartu, Tombol, Kolom, Input, JudulSeksi } from '../components/ui'
 import { IconKembali, IconPeringatan, IconCentangBulat, IconInfo } from '../components/Icons'
 
-// F-11 Edit Profil - brief §17.
-//
-// Brief §17: "Buat form edit dengan field yang jelas. Jangan
-// menggunakan singkatan yang tidak umum."
-//
-// Karena itu setiap kolom memakai kalimat penuh ("Nomor HP", bukan
-// "No. HP" atau "Telp"), dan diberi contoh isian supaya pasien tahu
-// format yang diharapkan.
+// F-11 Edit Profil.
+// Setiap kolom memakai kalimat penuh dan diberi contoh isian supaya
+// pelanggan tahu format yang diharapkan.
 export default function EditProfil() {
   const nav = useNavigate()
   const { user, ubahProfil, beriToast } = useStore()
 
   const [form, setForm] = useState({
-    nama: user?.nama || '',
-    no_wa: user?.no_wa || '',
+    name: user?.name || '',
+    phone: user?.phone || '',
     email: user?.email || '',
-    tanggal_lahir: user?.tanggal_lahir || '',
-    jenis_kelamin: user?.jenis_kelamin || 'P',
-    alamat: user?.alamat || '',
   })
   const [galat, setGalat] = useState({})
   const [sibuk, setSibuk] = useState(false)
@@ -35,13 +27,12 @@ export default function EditProfil() {
 
   const periksa = () => {
     const g = {}
-    if (!form.nama.trim()) g.nama = 'Nama lengkap wajib diisi.'
-    if (!form.no_wa.trim()) g.no_wa = 'Nomor HP wajib diisi.'
-    else if (!/^[0-9+\-\s()]{8,20}$/.test(form.no_wa.trim())) g.no_wa = 'Nomor HP tidak valid. Contoh: 0812-3456-7890'
+    if (!form.name.trim()) g.name = 'Nama lengkap wajib diisi.'
+    if (!form.phone.trim()) g.phone = 'Nomor HP wajib diisi.'
+    else if (!/^[0-9+\-\s()]{8,20}$/.test(form.phone.trim())) g.phone = 'Nomor HP tidak valid. Contoh: 0812-3456-7890'
     if (form.email.trim() && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email.trim())) {
       g.email = 'Alamat email belum benar. Contoh: nama@email.com'
     }
-    if (!form.alamat.trim()) g.alamat = 'Alamat wajib diisi agar pengiriman obat tidak salah.'
     return g
   }
 
@@ -54,12 +45,9 @@ export default function EditProfil() {
     setSibuk(true)
     try {
       await ubahProfil({
-        nama: form.nama.trim(),
-        no_wa: form.no_wa.trim(),
+        name: form.name.trim(),
+        phone: form.phone.trim(),
         email: form.email.trim(),
-        tanggal_lahir: form.tanggal_lahir || null,
-        jenis_kelamin: form.jenis_kelamin,
-        alamat: form.alamat.trim(),
       })
       setSukses(true)
     } catch (err) {
@@ -70,7 +58,6 @@ export default function EditProfil() {
     }
   }
 
-  // Layar sukses (brief §28): beri tahu bahwa perubahan tersimpan.
   if (sukses) {
     return (
       <div className="space-y-5">
@@ -83,7 +70,7 @@ export default function EditProfil() {
               Profil Berhasil Disimpan
             </h1>
             <p className="mx-auto mt-2 max-w-[38ch] text-[17px] leading-relaxed text-secondary">
-              Data diri Anda sudah diperbarui. Klinik akan memakai data terbaru ini untuk melayani Anda.
+              Data diri Anda sudah diperbarui. Apotek akan memakai data terbaru ini untuk memproses pesanan.
             </p>
           </div>
         </Kartu>
@@ -97,8 +84,8 @@ export default function EditProfil() {
   return (
     <form onSubmit={simpan} className="space-y-5">
       <p className="text-[17px] leading-relaxed text-secondary">
-        Lengkapi data diri Anda dengan benar. Data ini dipakai klinik untuk melayani dan mengirim
-        obat Anda.
+        Lengkapi data diri Anda dengan benar. Data ini dipakai apotek untuk mengonfirmasi dan
+        mengirim pesanan Anda.
       </p>
 
       <Kartu className="space-y-5">
@@ -106,13 +93,13 @@ export default function EditProfil() {
           label="Nama lengkap"
           wajib
           htmlFor="nama"
-          galat={galat.nama}
+          galat={galat.name}
           bantuan="Tulis nama sesuai kartu identitas."
         >
           <Input
             id="nama"
-            value={form.nama}
-            onChange={(e) => ubah('nama', e.target.value)}
+            value={form.name}
+            onChange={(e) => ubah('name', e.target.value)}
             placeholder="Contoh: Siti Nurhaliza"
           />
         </Kolom>
@@ -121,15 +108,15 @@ export default function EditProfil() {
           label="Nomor HP"
           wajib
           htmlFor="no_wa"
-          galat={galat.no_wa}
-          bantuan="Dipakai untuk masuk ke aplikasi dan dihubungi klinik."
+          galat={galat.phone}
+          bantuan="Dipakai untuk masuk ke aplikasi dan dihubungi apotek."
         >
           <Input
             id="no_wa"
             type="tel"
             inputMode="tel"
-            value={form.no_wa}
-            onChange={(e) => ubah('no_wa', e.target.value)}
+            value={form.phone}
+            onChange={(e) => ubah('phone', e.target.value)}
             placeholder="0812-3456-7890"
           />
         </Kolom>
@@ -138,7 +125,7 @@ export default function EditProfil() {
           label="Alamat email"
           htmlFor="email"
           galat={galat.email}
-          bantuan="Boleh dikosongkan bila Anda tidak punya email."
+          bantuan="Dipakai untuk masuk dan menerima notifikasi pesanan."
         >
           <Input
             id="email"
@@ -150,45 +137,10 @@ export default function EditProfil() {
           />
         </Kolom>
 
-        <Kolom label="Tanggal lahir" htmlFor="tanggal_lahir">
-          <Input
-            id="tanggal_lahir"
-            type="date"
-            value={form.tanggal_lahir || ''}
-            onChange={(e) => ubah('tanggal_lahir', e.target.value)}
-          />
-        </Kolom>
-
-        <Kolom label="Jenis kelamin" htmlFor="jenis_kelamin">
-          <Pilih
-            id="jenis_kelamin"
-            value={form.jenis_kelamin}
-            onChange={(e) => ubah('jenis_kelamin', e.target.value)}
-          >
-            <option value="P">Perempuan</option>
-            <option value="L">Laki-laki</option>
-          </Pilih>
-        </Kolom>
-
-        <Kolom
-          label="Alamat lengkap"
-          wajib
-          htmlFor="alamat"
-          galat={galat.alamat}
-          bantuan="Tulis nama jalan, nomor rumah, kelurahan, dan kota."
-        >
-          <AreaTeks
-            id="alamat"
-            value={form.alamat}
-            onChange={(e) => ubah('alamat', e.target.value)}
-            placeholder="Contoh: Jl. Melati No. 12, Depok"
-          />
-        </Kolom>
-
         <div className="rounded-[var(--radius-control)] surface-sunken px-4 py-3">
           <p className="flex items-start gap-2 text-[16px] leading-relaxed text-secondary">
             <IconInfo size={18} className="mt-0.5 shrink-0" />
-            <span>Nomor NIK tidak dapat diubah sendiri. Minta bantuan petugas klinik bila perlu diperbaiki.</span>
+            <span>Untuk mengubah alamat pengiriman, gunakan pilihan alamat saat menyelesaikan pesanan.</span>
           </p>
         </div>
 

@@ -1,65 +1,34 @@
 // =============================================================
-// Store aplikasi pasien.
+// Store aplikasi pasien (e-commerce murni).
 //
-// Semua data diambil dari REST API bersama (server/index.js).
-// Aplikasi pasien TIDAK menyimpan salinan data di localStorage,
-// kecuali: sesi login dan isi keranjang (keduanya memang milik
-// perangkat ini). Dengan begitu data pasien, pesanan, stok, dan
-// resep selalu sama dengan yang dilihat dashboard admin - PRD N-05.
+// Seluruh data berasal dari REST API apotek: katalog, keranjang,
+// alamat, pesanan, dan pembayaran. Tidak ada salinan data di
+// localStorage kecuali token sesi (memang milik perangkat ini).
+// Dengan begitu stok, harga, dan status pesanan yang dilihat pasien
+// selalu sama dengan yang dilihat petugas apotek.
 // =============================================================
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import api from './api'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import api, { ambilToken, simpanToken } from './api'
 
 const StoreContext = createContext(null)
 
-const KUNCI_SESI = 'premysis_pasien'
-const KUNCI_KERANJANG = 'premysis_keranjang'
-
-function bacaJSON(kunci, bawaan) {
-  try {
-    const raw = window.localStorage.getItem(kunci)
-    return raw ? JSON.parse(raw) : bawaan
-  } catch {
-    return bawaan
-  }
-}
-
 export function StoreProvider({ children }) {
-  const [data, setData] = useState(null)
+  const [user, setUser] = useState(null)
   const [memuat, setMemuat] = useState(true)
   const [galatMuat, setGalatMuat] = useState(null)
-  const [user, setUser] = useState(() => bacaJSON(KUNCI_SESI, null))
-  const [keranjang, setKeranjang] = useState(() => bacaJSON(KUNCI_KERANJANG, []))
   const [toast, setToast] = useState(null)
 
-  // --- Muat seluruh data dari API ---
-  const muat = useCallback(async () => {
-    try {
-      const s = await api.state()
-      setData(s)
-      setGalatMuat(null)
-      return s
-    } catch (e) {
-      setGalatMuat(e.message)
-      return null
-    } finally {
-      setMemuat(false)
-    }
-  }, [])
+  const [katalog, setKatalog] = useState({ categories: [], featured_products: [], latest_products: [], popular_products: [], promos: [], testimonials: [] })
+  const [pengaturan, setPengaturan] = useState(null)
+  const [daftarProduk, setDaftarProduk] = useState([])
+  const [metaProduk, setMetaProduk] = useState(null)
+  const [memuatProduk, setMemuatProduk] = useState(false)
+  const [keranjang, setKeranjang] = useState({ items: [], subtotal: 0, total_qty: 0, total_weight_gram: 0, has_prescription_products: false })
+  const [pesanan, setPesanan] = useState([])
+  const [alamat, setAlamat] = useState([])
+  const [wishlistIds, setWishlistIds] = useState([])
 
-  useEffect(() => {
-    muat()
-  }, [muat])
-
-  // --- Sinkronkan sesi & keranjang ke localStorage ---
-  useEffect(() => {
-    if (user) window.localStorage.setItem(KUNCI_SESI, JSON.stringify(user))
-    else window.localStorage.removeItem(KUNCI_SESI)
-  }, [user])
-
-  useEffect(() => {
-    window.localStorage.setItem(KUNCI_KERANJANG, JSON.stringify(keranjang))
-  }, [keranjang])
+  const cacheProduk = useRef(new Map())
 
   // --- Toast ringan untuk umpan balik aksi ---
   const beriToast = useCallback((pesan, tone = 'info') => {
@@ -72,252 +41,346 @@ export function StoreProvider({ children }) {
     return () => clearTimeout(t)
   }, [toast])
 
-  // ===========================================================
-  // Autentikasi - R-01 Pasien
-  // ===========================================================
-  const login = useCallback(async (identitas, password) => {
-    const p = await api.loginPasien(identitas, password)
-    setUser(p)
-    await muat()
-    return p
-  }, [muat])
+  // --- Muat data privat (butuh login) ---
+  const muatPrivat = useCallback(async () => {
+    const [k, p, a, w] = await Promise.all([
+      api.keranjang().catch(() => null),
+      api.pesanan({ per_page: 50 }).catch(() => null),
+      api.alamat().catch(() => []),
+      api.wishlistIds().catch(() => []),
+    ])
+    if (k) setKeranjang(k)
+    if (p) setPesanan(p.data || [])
+    setAlamat(Array.isArray(a) ? a : a?.data || [])
+    setWishlistIds(Array.isArray(w) ? w : w?.data || [])
+  }, [])
 
-  const registrasi = useCallback(async (form) => {
-    const p = await api.registrasi(form)
-    setUser(p)
-    await muat()
-    return p
-  }, [muat])
+  // --- Muat katalog publik + sesi ---
+  const muat = useCallback(async () => {
+    setMemuat(true)
+    try {
+      const [beranda, set] = await Promise.all([api.home(), api.settings().catch(() => null)])
+      setKatalog(beranda)
+      setPengaturan(set?.data || null)
+      setGalatMuat(null)
 
-  const logout = useCallback(() => {
+      if (ambilToken()) {
+        try {
+          const me = await api.saya()
+          setUser(me.user)
+          await muatPrivat()
+        } catch {
+          // Token tidak valid lagi: mulai sesi baru.
+          simpanToken(null)
+          setUser(null)
+        }
+      }
+    } catch (e) {
+      setGalatMuat(e.message)
+    } finally {
+      setMemuat(false)
+    }
+  }, [muatPrivat])
+
+  useEffect(() => {
+    muat()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // ===========================================================
+  // Autentikasi
+  // ===========================================================
+  const login = useCallback(
+    async (identitas, password) => {
+      const res = await api.masuk(identitas, password)
+      simpanToken(res.token)
+      setUser(res.user)
+      await muatPrivat()
+      return res.user
+    },
+    [muatPrivat],
+  )
+
+  const registrasi = useCallback(
+    async (form) => {
+      const res = await api.daftar(form)
+      simpanToken(res.token)
+      setUser(res.user)
+      await muatPrivat()
+      return res.user
+    },
+    [muatPrivat],
+  )
+
+  const logout = useCallback(async () => {
+    try {
+      await api.keluar()
+    } catch {
+      /* token mungkin sudah tidak valid; tetap bersihkan sesi lokal. */
+    }
+    simpanToken(null)
     setUser(null)
-    setKeranjang([])
-    window.localStorage.removeItem(KUNCI_KERANJANG)
+    setKeranjang({ items: [], subtotal: 0, total_qty: 0, total_weight_gram: 0, has_prescription_products: false })
+    setPesanan([])
+    setAlamat([])
+    setWishlistIds([])
   }, [])
-
-  // ===========================================================
-  // Keranjang (milik perangkat, disimpan lokal)
-  // ===========================================================
-  const tambahKeranjang = useCallback((idProduk, jumlah = 1) => {
-    setKeranjang((k) => {
-      const ada = k.find((x) => x.id_produk === idProduk)
-      if (ada) return k.map((x) => (x.id_produk === idProduk ? { ...x, jumlah: x.jumlah + jumlah } : x))
-      return [...k, { id_produk: idProduk, jumlah }]
-    })
-  }, [])
-
-  const setJumlahKeranjang = useCallback((idProduk, jumlah) => {
-    setKeranjang((k) =>
-      jumlah <= 0
-        ? k.filter((x) => x.id_produk !== idProduk)
-        : k.map((x) => (x.id_produk === idProduk ? { ...x, jumlah } : x)),
-    )
-  }, [])
-
-  const hapusDariKeranjang = useCallback((idProduk) => {
-    setKeranjang((k) => k.filter((x) => x.id_produk !== idProduk))
-  }, [])
-
-  const kosongkanKeranjang = useCallback(() => setKeranjang([]), [])
-
-  // ===========================================================
-  // Aksi yang menembak API lalu menyegarkan data
-  // ===========================================================
-  const checkout = useCallback(
-    async (payload) => {
-      const pesanan = await api.checkout(payload)
-      kosongkanKeranjang()
-      await muat()
-      beriToast(`Pesanan ${pesanan.nomor_pesanan} berhasil dibuat.`, 'sukses')
-      return pesanan
-    },
-    [muat, kosongkanKeranjang, beriToast],
-  )
-
-  const bayarPesanan = useCallback(
-    async (id, data) => {
-      const p = await api.bayarPesanan(id, { id_pasien: user?.id, ...data })
-      await muat()
-      beriToast('Bukti pembayaran terkirim. Klinik akan memeriksanya.', 'sukses')
-      return p
-    },
-    [muat, user, beriToast],
-  )
-
-  const batalkanPesanan = useCallback(
-    async (id) => {
-      await api.batalkanPesanan(id, user?.id)
-      await muat()
-      beriToast('Pesanan dibatalkan.', 'info')
-    },
-    [muat, user, beriToast],
-  )
-
-  const buatAppointment = useCallback(
-    async (form) => {
-      const a = await api.create('appointment', {
-        id_pasien: user.id,
-        id_bidan: form.id_bidan || 1,
-        status: 'Menunggu Konfirmasi', // BR-02 titik awal pengajuan pasien
-        catatan: '',
-        ...form,
-      })
-      await muat()
-      return a
-    },
-    [muat, user],
-  )
-
-  const batalkanAppointment = useCallback(
-    async (id) => {
-      await api.update('appointment', id, { status: 'Dibatalkan' })
-      await muat()
-    },
-    [muat],
-  )
-
-  const tambahBayi = useCallback(
-    async (form) => {
-      const b = await api.create('bayi', { id_pasien: user.id, ...form })
-      await muat()
-      beriToast(`Data ${b.nama} tersimpan. Jadwal vaksin dibuat otomatis.`, 'sukses')
-      return b
-    },
-    [muat, user, beriToast],
-  )
 
   const ubahProfil = useCallback(
     async (perubahan) => {
-      const p = await api.update('pasien', user.id, perubahan)
-      setUser(p)
-      await muat()
+      const res = await api.ubahProfil(perubahan)
+      setUser(res.user)
       beriToast('Profil diperbarui.', 'sukses')
-      return p
+      return res.user
     },
-    [muat, user, beriToast],
+    [beriToast],
   )
 
-  const bacaNotifikasi = useCallback(
-    async (id) => {
-      await api.bacaNotifikasi(id)
-      await muat()
+  const ubahSandi = useCallback(
+    async (data) => {
+      const res = await api.ubahSandi(data)
+      beriToast(res?.message || 'Kata sandi diperbarui.', 'sukses')
+      return res
     },
-    [muat],
+    [beriToast],
   )
 
-  const bacaSemuaNotifikasi = useCallback(async () => {
-    if (!user) return
-    await api.bacaSemuaNotifikasi(user.id)
-    await muat()
-  }, [muat, user])
+  // Selesaikan login Google: token sudah dibuat server, aplikasi pasien
+  // hanya menyimpannya lalu memuat ulang sesi.
+  const selesaikanLoginGoogle = useCallback(
+    async (token) => {
+      simpanToken(token)
+      try {
+        const me = await api.saya()
+        setUser(me.user)
+        await muatPrivat()
+        return me.user
+      } catch (e) {
+        simpanToken(null)
+        setUser(null)
+        throw e
+      }
+    },
+    [muatPrivat],
+  )
 
   // ===========================================================
-  // Selector (dihitung dari data, bukan disimpan terpisah)
+  // Katalog
+  // ===========================================================
+  const ambilProduk = useCallback(async (params) => {
+    setMemuatProduk(true)
+    try {
+      const res = await api.produk(params)
+      setDaftarProduk(res.data || [])
+      setMetaProduk(res.meta || null)
+      ;(res.data || []).forEach((p) => cacheProduk.current.set(p.id, p))
+      return res
+    } finally {
+      setMemuatProduk(false)
+    }
+  }, [])
+
+  const ambilProdukDetail = useCallback(async (slug) => {
+    const res = await api.produkDetail(slug)
+    if (res?.data) cacheProduk.current.set(res.data.id, res.data)
+    return res
+  }, [])
+
+  const simpanProdukKeCache = useCallback((daftar) => {
+    ;(daftar || []).forEach((p) => cacheProduk.current.set(p.id, p))
+  }, [])
+
+  // ===========================================================
+  // Keranjang (disimpan di server)
+  // ===========================================================
+  const terapkanKeranjang = useCallback((res) => {
+    if (res && Array.isArray(res.items)) {
+      setKeranjang({
+        items: res.items,
+        subtotal: res.subtotal ?? 0,
+        total_qty: res.total_qty ?? 0,
+        total_weight_gram: res.total_weight_gram ?? 0,
+        has_prescription_products: !!res.has_prescription_products,
+      })
+    }
+  }, [])
+
+  const tambahKeranjang = useCallback(
+    async (productId, qty = 1) => {
+      const res = await api.tambahKeranjang(productId, qty)
+      terapkanKeranjang(res)
+      return res
+    },
+    [terapkanKeranjang],
+  )
+
+  const setJumlahKeranjang = useCallback(
+    async (itemId, qty) => {
+      const res = await api.ubahJumlahKeranjang(itemId, qty)
+      terapkanKeranjang(res)
+      return res
+    },
+    [terapkanKeranjang],
+  )
+
+  const hapusDariKeranjang = useCallback(
+    async (itemId) => {
+      const res = await api.hapusItemKeranjang(itemId)
+      terapkanKeranjang(res)
+      return res
+    },
+    [terapkanKeranjang],
+  )
+
+  const kosongkanKeranjang = useCallback(async () => {
+    const res = await api.kosongkanKeranjang()
+    terapkanKeranjang(res)
+    return res
+  }, [terapkanKeranjang])
+
+  // ===========================================================
+  // Alamat
+  // ===========================================================
+  const tambahAlamat = useCallback(
+    async (data) => {
+      await api.tambahAlamat(data)
+      setAlamat(await api.alamat())
+      beriToast('Alamat ditambahkan.', 'sukses')
+    },
+    [beriToast],
+  )
+
+  const ubahAlamat = useCallback(
+    async (id, data) => {
+      await api.ubahAlamat(id, data)
+      setAlamat(await api.alamat())
+      beriToast('Alamat diperbarui.', 'sukses')
+    },
+    [beriToast],
+  )
+
+  const hapusAlamat = useCallback(
+    async (id) => {
+      await api.hapusAlamat(id)
+      setAlamat(await api.alamat())
+      beriToast('Alamat dihapus.', 'info')
+    },
+    [beriToast],
+  )
+
+  const jadikanAlamatUtama = useCallback(
+    async (id) => {
+      await api.alamatUtama(id)
+      setAlamat(await api.alamat())
+    },
+    [],
+  )
+
+  // ===========================================================
+  // Wishlist
+  // ===========================================================
+  const toggleWishlist = useCallback(async (productId) => {
+    const res = await api.toggleWishlist(productId)
+    setWishlistIds(await api.wishlistIds())
+    return res
+  }, [])
+
+  // ===========================================================
+  // Checkout & pesanan
+  // ===========================================================
+  const checkout = useCallback(
+    async (payload, opsi) => {
+      const res = await api.checkout(payload, opsi)
+      await Promise.all([api.keranjang().then(terapkanKeranjang).catch(() => {}), muatPrivat()])
+      beriToast(`Pesanan ${res.data?.order_number} berhasil dibuat.`, 'sukses')
+      return res.data
+    },
+    [muatPrivat, terapkanKeranjang, beriToast],
+  )
+
+  const segarkanPesanan = useCallback(async () => {
+    const p = await api.pesanan({ per_page: 50 }).catch(() => null)
+    if (p) setPesanan(p.data || [])
+  }, [])
+
+  const batalkanPesanan = useCallback(
+    async (nomor) => {
+      await api.batalkanPesanan(nomor)
+      await segarkanPesanan()
+      beriToast('Pesanan dibatalkan.', 'info')
+    },
+    [segarkanPesanan, beriToast],
+  )
+
+  const cekPembayaran = useCallback(
+    async (nomor) => {
+      const res = await api.cekPembayaran(nomor)
+      await segarkanPesanan()
+      return res
+    },
+    [segarkanPesanan],
+  )
+
+  const ajukanRetur = useCallback(
+    async (nomor, payload, berkas) => {
+      const res = await api.ajukanRetur(nomor, payload, berkas)
+      beriToast('Pengajuan retur terkirim.', 'sukses')
+      return res
+    },
+    [beriToast],
+  )
+
+  // ===========================================================
+  // Selector
   // ===========================================================
   const nilai = useMemo(() => {
-    const d = data || {}
-    const produk = d.produk || []
-    const pasien = d.pasien || []
-    const bayi = d.bayi || []
-    const appointment = d.appointment || []
-    const pemeriksaan = d.pemeriksaan || []
-    const resep = d.resep || []
-    const pesanan = d.pesanan || []
-    const notifikasi = d.notifikasi || []
-    const jadwalVaksin = d.jadwalVaksin || []
-    const kategori = d.kategori || []
-    const jenisVaksin = d.jenisVaksin || []
-
-    const idSaya = user?.id
-
-    const produkAktif = produk.filter((p) => p.status === 'Aktif')
-
-    const itemKeranjang = keranjang
-      .map((k) => ({ ...k, produk: produk.find((p) => p.id === k.id_produk) }))
-      .filter((x) => x.produk)
-
-    const subtotal = itemKeranjang.reduce((s, x) => s + x.produk.harga * x.jumlah, 0)
-    const jumlahKeranjang = itemKeranjang.reduce((s, x) => s + x.jumlah, 0)
-
-    const appointmentSaya = appointment
-      .filter((a) => a.id_pasien === idSaya)
-      .sort((a, b) => (a.tanggal + a.waktu < b.tanggal + b.waktu ? 1 : -1))
-
-    const pemeriksaanSaya = pemeriksaan
-      .filter((p) => p.id_pasien === idSaya)
-      .sort((a, b) => (a.tanggal < b.tanggal ? 1 : -1))
-
-    const resepSaya = resep.filter((r) => r.id_pasien === idSaya)
-
-    const pesananSaya = pesanan
-      .filter((p) => p.id_pasien === idSaya)
-      .sort((a, b) => (a.waktu_pemesanan < b.waktu_pemesanan ? 1 : -1))
-
-    const notifikasiSaya = notifikasi
-      .filter((n) => n.id_pasien === idSaya)
-      .sort((a, b) => (a.tanggal < b.tanggal ? 1 : -1))
-
-    const belumDibaca = notifikasiSaya.filter((n) => !n.status_baca).length
-
-    const bayiSaya = bayi.filter((b) => b.id_pasien === idSaya)
-    const idBayiSaya = new Set(bayiSaya.map((b) => b.id))
-    const jadwalVaksinSaya = jadwalVaksin
-      .filter((j) => idBayiSaya.has(j.id_bayi))
-      .sort((a, b) => (a.tanggal_terjadwal > b.tanggal_terjadwal ? 1 : -1))
-
-    // Produk yang boleh dibeli pasien ini (BR-05):
-    // produk wajib-resep hanya jika ada resep aktif yang menautkannya.
-    const idProdukResepAktif = new Set(
-      resepSaya
-        .filter((r) => r.status === 'Aktif')
-        .flatMap((r) => (r.detail || []).map((x) => x.id_produk))
-        .filter(Boolean),
-    )
-    const bolehBeli = (p) => !p.wajib_resep || idProdukResepAktif.has(p.id)
-
-    const appointmentMendatang = appointmentSaya
-      .filter((a) => a.status === 'Menunggu Konfirmasi' || a.status === 'Dikonfirmasi')
-      .sort((a, b) => (a.tanggal + a.waktu > b.tanggal + b.waktu ? 1 : -1))
-
-    // Slot waktu yang sudah dipakai pada satu tanggal.
-    // Dipakai wizard langkah 4 supaya pasien tidak memilih jam yang
-    // sudah terisi dan harus mengulang dari awal (brief §8).
-    const slotTerisi = (tanggal) =>
-      new Set(
-        appointment
-          .filter((a) => a.tanggal === tanggal && a.status !== 'Dibatalkan')
-          .map((a) => a.waktu),
-      )
-
-    // Produk aktif dikelompokkan per kategori (brief §10).
-    const produkPerKategori = (idKategori) =>
-      produkAktif.filter((p) => p.id_kategori === Number(idKategori))
-
-    const vaksinMendatang = jadwalVaksinSaya.filter((j) => j.status === 'Terjadwal')
+    const itemKeranjang = keranjang.items || []
+    const cariProduk = (id) => cacheProduk.current.get(Number(id)) || null
 
     return {
-      data: d,
-      produk, produkAktif, kategori, jenisVaksin,
-      pasien, bayi, bayiSaya, jadwalVaksinSaya, vaksinMendatang,
-      appointment, appointmentSaya, appointmentMendatang,
-      pemeriksaanSaya, resepSaya, pesananSaya, notifikasiSaya, belumDibaca,
-      idProdukResepAktif, bolehBeli, slotTerisi, produkPerKategori,
-      itemKeranjang, subtotal, jumlahKeranjang,
-      cariProduk: (id) => produk.find((p) => p.id === id),
-      cariKategori: (id) => kategori.find((k) => k.id === id),
-      cariBayi: (id) => bayi.find((b) => b.id === id),
-      namaProduk: (id) => produk.find((p) => p.id === id)?.nama || '-',
+      katalog,
+      pengaturan,
+      kategori: katalog.categories || [],
+      produkUnggulan: katalog.featured_products || [],
+      produkTerbaru: katalog.latest_products || [],
+      produkPopuler: katalog.popular_products || [],
+      promo: katalog.promos || [],
+      testimoni: katalog.testimonials || [],
+
+      daftarProduk,
+      metaProduk,
+      memuatProduk,
+      simpanProdukKeCache,
+
+      keranjang,
+      itemKeranjang,
+      subtotal: keranjang.subtotal || 0,
+      jumlahKeranjang: keranjang.total_qty || 0,
+      beratKeranjang: keranjang.total_weight_gram || 0,
+      adaProdukResep: keranjang.has_prescription_products,
+
+      pesananSaya: pesanan,
+      alamat,
+      alamatUtama: alamat.find((a) => a.is_default) || alamat[0] || null,
+      wishlistIds,
+
+      cariProduk,
+      namaProduk: (id) => cariProduk(id)?.name || '-',
+      jumlahDiKeranjang: (productId) =>
+        itemKeranjang.find((x) => x.product?.id === Number(productId))?.qty || 0,
     }
-  }, [data, user, keranjang])
+  }, [katalog, daftarProduk, metaProduk, memuatProduk, keranjang, pesanan, alamat, wishlistIds, simpanProdukKeCache])
 
   const nilaiAkhir = {
     ...nilai,
     user, memuat, galatMuat, toast,
-    login, registrasi, logout, muat,
-    keranjang, tambahKeranjang, setJumlahKeranjang, hapusDariKeranjang, kosongkanKeranjang,
-    checkout, batalkanPesanan, bayarPesanan,
-    buatAppointment, batalkanAppointment, tambahBayi, ubahProfil,
-    bacaNotifikasi, bacaSemuaNotifikasi, beriToast,
+    login, registrasi, logout, muat, muatPrivat, ubahProfil, ubahSandi, selesaikanLoginGoogle,
+    ambilProduk, ambilProdukDetail,
+    tambahKeranjang, setJumlahKeranjang, hapusDariKeranjang, kosongkanKeranjang,
+    tambahAlamat, ubahAlamat, hapusAlamat, jadikanAlamatUtama,
+    toggleWishlist,
+    checkout, segarkanPesanan, batalkanPesanan, cekPembayaran, ajukanRetur,
+    beriToast,
   }
 
   return <StoreContext.Provider value={nilaiAkhir}>{children}</StoreContext.Provider>
@@ -329,5 +392,4 @@ export const useStore = () => {
   return ctx
 }
 
-// Alias supaya halaman bisa memakai nama yang lebih akrab.
 export const useAuth = useStore

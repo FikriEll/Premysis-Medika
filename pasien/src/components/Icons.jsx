@@ -69,6 +69,16 @@ import {
   MapTrifold,
   DeviceMobile,
   HandWaving,
+  Star,
+  ShieldCheck,
+  FileText,
+  BookOpen,
+  Tag,
+  Gear,
+  CreditCard,
+  SealCheck,
+  ChatsCircle,
+  PlusCircle,
 } from '@phosphor-icons/react'
 
 const WEIGHT = 'regular'
@@ -158,3 +168,16 @@ export const IconPonsel = make(DeviceMobile)
 // tetapi aturan skill melarang emoji dekoratif; ikon Phosphor
 // memberi makna yang sama tanpa melanggar aturan).
 export const IconSapa = make(HandWaving)
+
+// --- Tambahan untuk halaman konten & akun ---
+export const IconBintang = make(Star)
+export const IconPerisai = make(ShieldCheck)
+export const IconDokumen = make(FileText)
+export const IconBuku = make(BookOpen)
+export const IconLabel = make(Tag)
+export const IconGear = make(Gear)
+export const IconKartu = make(CreditCard)
+export const IconTerverifikasi = make(SealCheck)
+export const IconDiskusi = make(ChatsCircle)
+export const IconTambahBulat = make(PlusCircle)
+export const IconTentang = make(Info)

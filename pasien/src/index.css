@@ -81,6 +81,12 @@
   --radius-card: 16px;
   --radius-shell: 20px;
 
+  /* --- Lebar wadah halaman (web responsive) --- */
+  /* 1280px: cukup lega untuk grid 3-4 kolom, tetapi baris teks
+     masih nyaman dibaca. Halaman teks panjang memakai wadah-baca
+     (760px) supaya barisnya tidak melelahkan mata. */
+  --lebar-wadah: 1280px;
+
   /* --- Z-index terkendali (satu skala terdokumentasi) --- */
   --z-base: 0;
   --z-sticky: 20;
@@ -536,7 +542,51 @@ p {
   }
 }
 
-/* Ruang bawah ekstra agar konten tidak tertutup bottom nav. */
+/* =============================================================
+   WEB RESPONSIVE
+   -------------------------------------------------------------
+   Aplikasi ini dulu dirancang sebagai "app mobile" (satu kolom
+   560px + bottom nav). Sekarang tampil sebagai WEBSITE yang
+   responsif: satu kolom di ponsel, dan di layar besar memakai
+   header navigasi, grid multi-kolom, serta sidebar ringkas.
+
+   Dua utility di bawah menjadi satu sumber kebenaran lebar
+   halaman, supaya semua halaman punya tepi yang sejajar.
+   ============================================================= */
+
+/* Wadah halaman: menyamakan lebar konten di semua halaman. */
+@utility wadah {
+  margin-inline: auto;
+  width: 100%;
+  max-width: var(--lebar-wadah);
+  padding-inline: 1rem;
+
+  @media (min-width: 640px) {
+    padding-inline: 1.5rem;
+  }
+  @media (min-width: 1024px) {
+    padding-inline: 2rem;
+  }
+}
+
+/* Wadah baca: untuk halaman teks panjang (syarat, privasi, FAQ,
+   artikel) supaya baris tidak terlalu panjang dan tetap nyaman
+   dibaca di layar lebar. */
+@utility wadah-baca {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 760px;
+}
+
+/* Ruang bawah ekstra agar konten tidak tertutup bottom nav.
+   HANYA berlaku di ponsel/tablet - di layar besar navigasi
+   berpindah ke header sehingga ruang ekstra tidak diperlukan. */
 .pb-nav {
-  padding-bottom: calc(5.25rem + env(safe-area-inset-bottom));
+  padding-bottom: 2.5rem;
+}
+
+@media (max-width: 1023px) {
+  .pb-nav {
+    padding-bottom: calc(5.25rem + env(safe-area-inset-bottom));
+  }
 }

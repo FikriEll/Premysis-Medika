@@ -1,44 +1,56 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useStore } from '../lib/store'
 import { fmtRupiah } from '../../../shared/format'
-import { Kartu, Tombol, Lencana, Kosong, PengaturJumlah, BarisInfo } from '../components/ui'
-import {
-  IconProduk, IconKeranjang, IconPeringatan, IconInfo, IconObat, IconToko,
-} from '../components/Icons'
+import { Kartu, Tombol, Lencana, Kosong, PengaturJumlah, BarisInfo, Memuat, Galat } from '../components/ui'
+import { IconProduk, IconKeranjang, IconPeringatan, IconInfo, IconToko, IconHati } from '../components/Icons'
+import { IlustrasiObat } from '../components/Ilustrasi'
 
-// F-08 Detail Produk - brief §11.
+// F-08 Detail Produk.
 //
-// Brief §11: "Jangan membuat pasien harus membaca paragraf panjang
-// untuk membeli produk." Karena itu urutannya:
-//   1. gambar + nama + harga (paling penting)
-//   2. tombol Tambah ke Keranjang + jumlah
-//   3. baru keterangan tambahan di bawah.
-//
-// Soal "kegunaan" dan "aturan penggunaan" (brief §11): brief hanya
-// meminta menampilkan keduanya BILA informasi itu tersedia dan sudah
-// diverifikasi klinik. Katalog demo tidak menyimpan kolom itu, jadi
-// informasi aturan pakai diambil dari resep aktif pasien (satu-satunya
-// sumber yang memang diverifikasi bidan). Tidak ada info medis yang
-// dikarang di halaman ini.
+// Urutan sesuai kebutuhan pembeli: gambar + nama + harga dulu,
+// tombol Tambah ke Keranjang, baru keterangan tambahan di bawah.
 export default function DetailProduk() {
-  const { id } = useParams()
+  const { slug } = useParams()
   const nav = useNavigate()
-  const { cariProduk, cariKategori, tambahKeranjang, bolehBeli, beriToast, resepSaya } = useStore()
+  const { ambilProdukDetail, tambahKeranjang, jumlahDiKeranjang, beriToast, user, toggleWishlist, wishlistIds } = useStore()
+
+  const [produk, setProduk] = useState(null)
+  const [terkait, setTerkait] = useState([])
+  const [memuat, setMemuat] = useState(true)
+  const [galat, setGalat] = useState('')
   const [jumlah, setJumlah] = useState(1)
 
-  const p = cariProduk(Number(id))
+  useEffect(() => {
+    let batal = false
+    setMemuat(true)
+    ambilProdukDetail(slug)
+      .then((res) => {
+        if (batal) return
+        setProduk(res.data)
+        setTerkait(res.related || [])
+        setGalat('')
+      })
+      .catch((e) => !batal && setGalat(e.message))
+      .finally(() => !batal && setMemuat(false))
+    return () => {
+      batal = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug])
 
-  if (!p) {
+  if (memuat) return <Memuat baris={4} />
+
+  if (galat || !produk) {
     return (
       <Kartu padat>
         <Kosong
           judul="Produk tidak ditemukan"
-          pesan="Produk ini mungkin sudah tidak dijual lagi."
+          pesan={galat || 'Produk ini mungkin sudah tidak dijual lagi.'}
           ikon={<IconProduk size={24} />}
           aksi={
             <Tombol size="lg" onClick={() => nav('/toko', { replace: true })}>
-              Kembali ke Daftar Obat
+              Kembali ke Toko
             </Tombol>
           }
         />
@@ -46,84 +58,120 @@ export default function DetailProduk() {
     )
   }
 
-  const habis = p.stok <= 0 || p.status !== 'Aktif'
-  const boleh = bolehBeli(p)
+  const habis = !produk.in_stock || produk.stock <= 0
+  const boleh = !produk.requires_prescription
 
-  // Aturan pakai dari resep aktif yang memuat produk ini, jika ada.
-  const aturanResep = resepSaya
-    .filter((r) => r.status === 'Aktif')
-    .flatMap((r) => r.detail || [])
-    .find((d) => d.id_produk === p.id)
+  const tambah = async () => {
+    if (!user) {
+      beriToast('Masuk dulu untuk menambah ke keranjang.', 'info')
+      nav('/masuk', { state: { dari: `/produk/${produk.slug}` } })
+      return
+    }
+    try {
+      await tambahKeranjang(produk.id, jumlah)
+      beriToast(`${jumlah} ${produk.unit} ${produk.name} masuk keranjang.`, 'sukses')
+      nav('/keranjang')
+    } catch (e) {
+      beriToast(e.message, 'galat')
+    }
+  }
 
-  const tambah = () => {
-    tambahKeranjang(p.id, jumlah)
-    beriToast(`${jumlah} ${p.satuan} ${p.nama} masuk keranjang.`, 'sukses')
-    nav('/keranjang')
+  const favorit = wishlistIds.map(Number).includes(Number(produk.id))
+
+  const simpanFavorit = async () => {
+    if (!user) {
+      beriToast('Masuk dulu untuk menyimpan produk favorit.', 'info')
+      nav('/masuk', { state: { dari: `/produk/${produk.slug}` } })
+      return
+    }
+    try {
+      await toggleWishlist(produk.id)
+      beriToast(favorit ? `${produk.name} dihapus dari favorit.` : `${produk.name} disimpan ke favorit.`, 'sukses')
+    } catch (e) {
+      beriToast(e.message, 'galat')
+    }
   }
 
   return (
     <div className="space-y-5">
-      {/* --- Bagian utama: gambar, nama, harga --- */}
-      <Kartu className="space-y-4">
-        <div className="flex h-44 items-center justify-center rounded-[var(--radius-control)] permukaan-1 text-accent">
-          <IconProduk size={68} weight="bold" />
-        </div>
-
-        <div>
-          <h1 className="text-[23px] font-bold leading-snug tracking-tight text-primary">{p.nama}</h1>
-          <p className="mt-1 text-[16px] text-secondary">{cariKategori(p.id_kategori)?.nama}</p>
-        </div>
-
-        <div className="flex items-end justify-between gap-3">
-          <p className="numeric text-[28px] font-bold leading-none text-primary">{fmtRupiah(p.harga)}</p>
-          <p className="text-[16px] text-secondary">per {p.satuan}</p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          {p.wajib_resep && (
-            <Lencana tone="amber" ikon={<IconPeringatan size={14} weight="bold" />}>
-              Perlu resep
-            </Lencana>
-          )}
-          {habis ? (
-            <Lencana tone="rose">Stok habis</Lencana>
+      {/* --- Bagian utama: gambar di kiri, informasi di kanan saat layar lebar --- */}
+      <Kartu className="md:grid md:grid-cols-[minmax(0,380px)_minmax(0,1fr)] md:items-start md:gap-7 md:space-y-0">
+        <div className="flex h-56 items-center justify-center overflow-hidden rounded-[var(--radius-control)] permukaan-1 text-accent md:h-[380px]">
+          {produk.image ? (
+            <img src={produk.image} alt={produk.name} className="h-full w-full object-cover" />
           ) : (
-            <Lencana tone="green">
-              <span className="numeric">Tersedia {p.stok} {p.satuan}</span>
-            </Lencana>
+            <IconProduk size={68} weight="bold" />
+          )}
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <h1 className="text-[24px] font-bold leading-snug tracking-tight text-primary md:text-[28px]">{produk.name}</h1>
+            <p className="mt-1 text-[16px] text-secondary">{produk.category?.name || 'Produk kesehatan'}</p>
+          </div>
+
+          <div className="flex items-end justify-between gap-3">
+            <p className="numeric text-[30px] font-bold leading-none text-primary">{fmtRupiah(produk.price)}</p>
+            <div className="flex items-center gap-3">
+              <p className="text-[16px] text-secondary">per {produk.unit}</p>
+              <button
+                type="button"
+                onClick={simpanFavorit}
+                aria-label={favorit ? `Hapus ${produk.name} dari favorit` : `Simpan ${produk.name} ke favorit`}
+                aria-pressed={favorit}
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-hairline surface-raised text-[var(--color-signal-rose)] active:surface-hover"
+              >
+                <IconHati size={22} weight={favorit ? 'fill' : 'regular'} />
+              </button>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {produk.requires_prescription && (
+              <Lencana tone="amber" ikon={<IconPeringatan size={14} weight="bold" />}>
+                Perlu resep
+              </Lencana>
+            )}
+            {habis ? (
+              <Lencana tone="rose">Stok habis</Lencana>
+            ) : (
+              <Lencana tone="green">
+                <span className="numeric">Tersedia {produk.stock} {produk.unit}</span>
+              </Lencana>
+            )}
+          </div>
+
+          {/* --- Peringatan resep, kalau perlu --- */}
+          {!boleh && (
+            <p className="flex items-start gap-2.5 rounded-[var(--radius-card)] bg-[var(--color-signal-amber-soft)] px-4 py-3.5 text-[16px] leading-relaxed text-[var(--color-signal-amber)]">
+              <IconPeringatan size={20} weight="bold" className="mt-0.5 shrink-0" />
+              <span>
+                Produk ini memerlukan resep dokter/bidan. Unggah resep Anda saat checkout, lalu apotek
+                akan memverifikasinya sebelum pesanan diproses.
+              </span>
+            </p>
           )}
         </div>
       </Kartu>
 
-      {/* --- Peringatan resep, kalau perlu --- */}
-      {!boleh && (
-        <p className="flex items-start gap-2.5 rounded-[var(--radius-card)] bg-[var(--color-signal-amber-soft)] px-4 py-3.5 text-[16px] leading-relaxed text-[var(--color-signal-amber)]">
-          <IconPeringatan size={20} weight="bold" className="mt-0.5 shrink-0" />
-          <span>
-            Produk ini memerlukan resep bidan. Minta bidan menerbitkan resep terlebih dahulu, lalu
-            Anda dapat membelinya dari menu Resep Obat.
-          </span>
-        </p>
-      )}
-
       {/* --- Tindakan utama --- */}
-      {boleh && !habis && (
+      {!habis && (
         <>
           <div className="flex items-center justify-between gap-4">
             <span className="text-[17px] font-semibold text-primary">Jumlah</span>
             <PengaturJumlah
               nilai={jumlah}
               min={1}
-              max={p.stok}
+              max={produk.stock}
               onKurang={() => setJumlah((n) => Math.max(1, n - 1))}
-              onTambah={() => setJumlah((n) => Math.min(p.stok, n + 1))}
+              onTambah={() => setJumlah((n) => Math.min(produk.stock, n + 1))}
             />
           </div>
 
           <div className="rounded-[var(--radius-control)] surface-sunken px-4 py-3.5">
             <BarisInfo label="Subtotal" className="py-1">
               <span className="numeric text-[20.5px] font-bold text-primary">
-                {fmtRupiah(p.harga * jumlah)}
+                {fmtRupiah(produk.price * jumlah)}
               </span>
             </BarisInfo>
           </div>
@@ -139,7 +187,7 @@ export default function DetailProduk() {
         <Kartu>
           <Kosong
             judul="Stok sedang habis"
-            pesan="Silakan hubungi klinik untuk menanyakan ketersediaan produk ini."
+            pesan="Silakan hubungi apotek untuk menanyakan ketersediaan produk ini."
             ikon={<IconInfo size={24} />}
             aksi={
               <Tombol size="lg" variant="secondary" onClick={() => nav('/toko')}>
@@ -150,35 +198,59 @@ export default function DetailProduk() {
         </Kartu>
       )}
 
-      {/* --- Keterangan tambahan (prioritas paling bawah) --- */}
+      {/* --- Keterangan tambahan --- */}
       <Kartu className="space-y-3">
         <h2 className="text-[18.5px] font-semibold tracking-tight text-primary">Keterangan</h2>
-        <p className="text-[17px] leading-relaxed text-secondary">{p.deskripsi}</p>
-
-        {aturanResep && (
-          <div className="space-y-1.5 rounded-[var(--radius-control)] border border-hairline px-4 py-3.5">
-            <p className="text-[16px] font-semibold text-primary">Aturan pakai dari resep Anda</p>
-            <p className="text-[16px] leading-relaxed text-secondary">
-              Dosis: {aturanResep.dosis}
-            </p>
-            {aturanResep.aturan_pakai && (
-              <p className="text-[16px] leading-relaxed text-secondary">{aturanResep.aturan_pakai}</p>
-            )}
-          </div>
+        {produk.description && (
+          <p className="text-[17px] leading-relaxed text-secondary">{produk.description}</p>
         )}
 
         <div className="divide-y divide-[var(--border-hairline)]">
-          <BarisInfo label="Kategori">{cariKategori(p.id_kategori)?.nama}</BarisInfo>
-          <BarisInfo label="Satuan">{p.satuan}</BarisInfo>
+          <BarisInfo label="Kategori">{produk.category?.name || '-'}</BarisInfo>
+          <BarisInfo label="Golongan">{produk.drug_class_label}</BarisInfo>
+          {produk.composition && <BarisInfo label="Komposisi">{produk.composition}</BarisInfo>}
+          {produk.dosage && <BarisInfo label="Dosis">{produk.dosage}</BarisInfo>}
+          {produk.manufacturer && <BarisInfo label="Produsen">{produk.manufacturer}</BarisInfo>}
+          <BarisInfo label="Satuan">{produk.unit}</BarisInfo>
           <BarisInfo label="Ketersediaan">
-            <span className="numeric">{habis ? 'Habis' : `${p.stok} ${p.satuan}`}</span>
+            <span className="numeric">{habis ? 'Habis' : `${produk.stock} ${produk.unit}`}</span>
           </BarisInfo>
         </div>
       </Kartu>
 
+      {/* --- Produk terkait --- */}
+      {terkait.length > 0 && (
+        <section>
+          <h2 className="mb-3 text-[18.5px] font-semibold tracking-tight text-primary">
+            Produk Serupa
+          </h2>
+          <ul className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+            {terkait.slice(0, 4).map((p) => (
+              <li key={p.id}>
+                <Kartu padat>
+                  <button
+                    type="button"
+                    onClick={() => nav(`/produk/${p.slug}`)}
+                    className="flex w-full items-center gap-3 p-3.5 text-left"
+                  >
+                    <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[var(--radius-control)] permukaan-1 text-accent">
+                      {p.image ? <img src={p.image} alt="" className="h-full w-full object-cover" /> : <IconProduk size={24} />}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[17px] font-semibold text-primary">{p.name}</span>
+                      <span className="numeric mt-0.5 block text-[16px] font-bold text-primary">{fmtRupiah(p.price)}</span>
+                    </span>
+                  </button>
+                </Kartu>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <Tombol variant="secondary" size="lg" penuh onClick={() => nav('/toko')}>
         <IconToko size={20} weight="bold" />
-        Kembali ke Daftar Obat
+        Kembali ke Toko
       </Tombol>
     </div>
   )
