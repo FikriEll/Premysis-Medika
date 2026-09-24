@@ -86,6 +86,19 @@ export default function Toko() {
 
   return (
     <div className="space-y-5">
+      {/* Judul halaman: halaman Toko sebelumnya tidak punya <h1>,
+          sehingga pembaca layar & mesin pencari tidak tahu topik
+          halaman. Sekarang setiap halaman publik punya satu h1. */}
+      <div>
+        <h1 className="text-[26px] font-medium leading-tight tracking-tight text-heading sm:text-[30px]">
+          Katalog Obat &amp; Kebutuhan Kesehatan
+        </h1>
+        <p className="mt-1.5 max-w-[60ch] text-[16px] leading-relaxed text-secondary">
+          Cari obat, vitamin, dan alat kesehatan. Stok dan harga selalu sama dengan yang
+          dilihat petugas apotek.
+        </p>
+      </div>
+
       {/* Pintasan ke keranjang: selalu terlihat kalau ada isinya. */}
       {jumlahKeranjang > 0 && (
         <button

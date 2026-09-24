@@ -15,10 +15,13 @@ import { IlustrasiKeranjang } from '../components/Ilustrasi'
 import { statusPesanan } from '../lib/status'
 import Carousel from '../components/Carousel'
 import LogoKlinik from '../components/LogoKlinik'
-import { JanjiLayanan, TanyaJawab, TestimoniSingkat, SuratKabar } from '../components/BagianBeranda'
+import { JanjiLayanan, SuratKabar } from '../components/BagianBeranda'
 import {
   LencanaPil, JudulBagian, KartuFitur, KartuInfo, PilLayanan, BarisCentang, TautanPanah,
 } from '../components/BagianLanding'
+import { useSembunyikanAjakan } from '../components/LayoutPublik'
+import TestimoniMarquee from '../components/TestimoniMarquee'
+import AkordeonTanya from '../components/AkordeonTanya'
 
 // =============================================================
 // F-02 Beranda - landing page storefront.
@@ -122,6 +125,9 @@ function susunSlide(promo) {
 
 export default function Beranda() {
   const nav = useNavigate()
+  // Beranda punya blok ajakan sendiri di bagian Kontak -> matikan
+  // ajakan umum milik LayoutPublik agar tidak menumpuk.
+  useSembunyikanAjakan()
   const {
     user, produkUnggulan, promo, pesananSaya, kategori, janji, faq, testimoni,
     pengaturan, beriToast, tambahKeranjang,
@@ -587,10 +593,42 @@ export default function Beranda() {
       </section>
 
       {/* ============ 12. TESTIMONI ============ */}
-      <TestimoniSingkat daftar={testimoni} onLihatSemua={() => nav('/testimoni')} />
+      {testimoni?.length > 0 && (
+        <section>
+          <JudulBagian
+            tengah
+            label="Testimoni"
+            judul="Kata pelanggan kami"
+            pengantar="Cerita nyata dari pelanggan yang sudah berbelanja di apotek kami."
+            aksi={<TautanPanah onClick={() => nav('/testimoni')}>Lihat semua testimoni</TautanPanah>}
+          />
+          <div className="mt-10">
+            <TestimoniMarquee daftar={testimoni} />
+          </div>
+        </section>
+      )}
 
       {/* ============ 13. TANYA JAWAB ============ */}
-      <TanyaJawab daftar={faq} onLihatSemua={() => nav('/faq')} />
+      {faq?.length > 0 && (
+        <section>
+          <JudulBagian
+            tengah
+            label="Tanya Jawab"
+            judul="Pertanyaan yang sering diajukan"
+            pengantar="Jawaban cepat soal pesanan, resep, pengiriman, dan pembayaran."
+          />
+          <div className="mx-auto mt-9 max-w-3xl">
+            <AkordeonTanya
+              daftar={faq.slice(0, 6)}
+              infoKontak={{
+                judul: 'Masih belum terjawab?',
+                keterangan: 'Tim apoteker kami siap membantu Anda lewat WhatsApp atau form pesan.',
+                aksi: <TautanPanah onClick={() => nav('/faq')}>Lihat semua pertanyaan</TautanPanah>,
+              }}
+            />
+          </div>
+        </section>
+      )}
 
       {/* ============ 14. INFO GRID ============ */}
       <section>

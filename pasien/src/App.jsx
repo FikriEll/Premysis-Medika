@@ -1,6 +1,25 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
 import { useStore } from './lib/store'
+
+// =============================================================
+// Kembalikan posisi gulir ke atas setiap kali pindah halaman.
+//
+// Tanpa ini, React Router mempertahankan posisi gulir halaman
+// sebelumnya - sehingga membuka menu dari tengah Beranda akan
+// mendarat di tengah halaman tujuan ("rute ngawur"): judul
+// halaman terlewat jauh di atas layar.
+//
+// Hanya gulir ke atas bila `pathname` berubah, supaya berpindah
+// tab/kategori di halaman yang sama tidak ikut melompat.
+// =============================================================
+function GulirKeAtas() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+  }, [pathname])
+  return null
+}
 import AppLayout from './components/AppLayout'
 import LayoutPublik from './components/LayoutPublik'
 import Masuk from './pages/Masuk'
@@ -80,42 +99,51 @@ export default function App() {
   }
 
   return (
-    <Routes>
-      <Route path="/masuk" element={<Masuk />} />
-      <Route path="/registrasi" element={<Registrasi />} />
+    <>
+      <GulirKeAtas />
+      <Routes>
+        <Route path="/masuk" element={<Masuk />} />
+        <Route path="/registrasi" element={<Registrasi />} />
 
-      {/* --- Halaman publik: katalog & informasi apotek --- */}
-      <Route element={<LayoutPublik />}>
-        <Route index element={<Beranda />} />
-        <Route path="toko" element={<Toko />} />
-        <Route path="produk/:slug" element={<DetailProduk />} />
-        <Route path="tentang" element={<TentangKami />} />
-        <Route path="kontak" element={<Kontak />} />
-        <Route path="faq" element={<FAQ />} />
-        <Route path="syarat" element={<HalamanLegal jenis="terms" />} />
-        <Route path="privasi" element={<HalamanLegal jenis="privacy" />} />
-        <Route path="testimoni" element={<Testimoni />} />
-        <Route path="blog" element={<Blog />} />
-        <Route path="blog/:slug" element={<BlogDetail />} />
-        <Route path="promo" element={<Promo />} />
-      </Route>
+        {/* --- Halaman publik: katalog & informasi apotek --- */}
+        <Route element={<LayoutPublik />}>
+          <Route index element={<Beranda />} />
+          <Route path="toko" element={<Toko />} />
+          <Route path="produk/:slug" element={<DetailProduk />} />
+          <Route path="tentang" element={<TentangKami />} />
+          <Route path="kontak" element={<Kontak />} />
+          <Route path="faq" element={<FAQ />} />
+          <Route path="syarat" element={<HalamanLegal jenis="terms" />} />
+          <Route path="privasi" element={<HalamanLegal jenis="privacy" />} />
+          <Route path="testimoni" element={<Testimoni />} />
+          <Route path="blog" element={<Blog />} />
+          <Route path="blog/:slug" element={<BlogDetail />} />
+          <Route path="promo" element={<Promo />} />
+        </Route>
 
-      {/* --- Halaman pelanggan: perlu masuk --- */}
-      <Route element={<Terlindungi><AppLayout /></Terlindungi>}>
-        <Route path="keranjang" element={<Keranjang />} />
-        <Route path="checkout" element={<Checkout />} />
-        <Route path="pesanan" element={<Pesanan />} />
-        <Route path="pesanan/:nomor/bayar" element={<Pembayaran />} />
-        <Route path="profil" element={<Profil />} />
-        <Route path="profil/edit" element={<EditProfil />} />
+        {/* --- Halaman pelanggan: perlu masuk --- */}
+        <Route element={<Terlindungi><AppLayout /></Terlindungi>}>
+          <Route path="keranjang" element={<Keranjang />} />
+          <Route path="checkout" element={<Checkout />} />
+          <Route path="pesanan" element={<Pesanan />} />
+          <Route path="pesanan/:nomor/bayar" element={<Pembayaran />} />
+          <Route path="profil" element={<Profil />} />
+          <Route path="profil/edit" element={<EditProfil />} />
 
-        {/* Halaman akun */}
-        <Route path="wishlist" element={<Wishlist />} />
-        <Route path="pengaturan" element={<PengaturanAkun />} />
-        <Route path="pengaturan/pengiriman" element={<PengaturanPengiriman />} />
-      </Route>
+          {/* Halaman akun */}
+          <Route path="wishlist" element={<Wishlist />} />
+          <Route path="pengaturan" element={<PengaturanAkun />} />
+          <Route path="pengaturan/pengiriman" element={<PengaturanPengiriman />} />
+        </Route>
 
-      <Route path="*" element={<TidakDitemukan />} />
-    </Routes>
+        {/* 404 tampil DI DALAM kerangka situs publik (header + footer),
+            supaya pengunjung tidak terlempar ke halaman telanjang.
+            Semua alamat tak dikenal - termasuk sub-alamat /pengaturan/*
+            dan /profil/* yang tidak terdaftar - jatuh ke sini. */}
+        <Route element={<LayoutPublik tanpaAjakan />}>
+          <Route path="*" element={<TidakDitemukan />} />
+        </Route>
+      </Routes>
+    </>
   )
 }

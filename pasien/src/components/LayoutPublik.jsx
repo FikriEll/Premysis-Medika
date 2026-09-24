@@ -1,3 +1,4 @@
+import { createContext, useContext, useEffect, useState } from 'react'
 import { Outlet, useNavigate } from 'react-router-dom'
 import Header from './Header'
 import Footer from './Footer'
@@ -5,6 +6,28 @@ import BottomNav from './BottomNav'
 import { Toast } from './ui'
 import { useStore } from '../lib/store'
 import { IconToko } from './Icons'
+
+// =============================================================
+// Kontrol blok ajakan umum.
+//
+// Layout ini selalu menambahkan satu blok "Siap mulai belanja
+// obat?" di bawah konten untuk pengunjung yang belum masuk. Tetapi
+// sebagian halaman (Beranda, FAQ, Testimoni) sudah punya blok
+// ajakan sendiri di akhir - kalau keduanya tampil, halaman jadi
+// menumpuk dua ajakan berturut-turut.
+//
+// Halaman seperti itu cukup memanggil useSembunyikanAjakan() sekali;
+// blok umum otomatis disembunyikan selama halaman itu aktif.
+// =============================================================
+const KonteksAjakan = createContext(() => {})
+
+export function useSembunyikanAjakan() {
+  const setSembunyi = useContext(KonteksAjakan)
+  useEffect(() => {
+    setSembunyi(true)
+    return () => setSembunyi(false)
+  }, [setSembunyi])
+}
 
 // =============================================================
 // Kerangka halaman PUBLIK (tanpa login).
@@ -23,11 +46,14 @@ import { IconToko } from './Icons'
 // karena tujuan menu itu halaman milik pelanggan (keranjang,
 // pesanan, profil) yang tetap dijaga login.
 // =============================================================
-export default function LayoutPublik() {
+export default function LayoutPublik({ tanpaAjakan = false }) {
   const { toast, user } = useStore()
   const nav = useNavigate()
+  // true bila halaman aktif sudah punya blok ajakan sendiri.
+  const [sembunyiAjakan, setSembunyiAjakan] = useState(false)
 
   return (
+    <KonteksAjakan.Provider value={setSembunyiAjakan}>
     <div className="publik flex min-h-dvh flex-col surface-canvas">
       <a href="#konten" className="skip-link">
         Lompat ke konten
@@ -36,8 +62,10 @@ export default function LayoutPublik() {
       <main id="konten" className="wadah flex-1 pb-nav pt-5">
         <Outlet />
 
-        {/* Ajakan masuk bagi pengunjung yang belum punya sesi. */}
-        {!user && (
+        {/* Ajakan masuk bagi pengunjung yang belum punya sesi.
+            Dimatikan di halaman 404 dan di halaman yang punya
+            ajakan sendiri - supaya tidak menumpuk. */}
+        {!user && !tanpaAjakan && !sembunyiAjakan && (
           <section className="mt-12 overflow-hidden rounded-[var(--radius-shell)] permukaan-sambutan border border-hairline">
             <div className="flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
               <div className="max-w-[52ch]">
@@ -81,5 +109,6 @@ export default function LayoutPublik() {
       {user && <BottomNav />}
       <Toast toast={toast} />
     </div>
+    </KonteksAjakan.Provider>
   )
 }

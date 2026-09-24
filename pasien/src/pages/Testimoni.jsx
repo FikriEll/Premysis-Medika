@@ -7,6 +7,7 @@ import {
 import { IconBintang, IconWhatsapp, IconTerverifikasi } from '../components/Icons'
 import { IlustrasiTestimoni, IlustrasiKosong } from '../components/Ilustrasi'
 import { fmtTanggal } from '../../../shared/format'
+import { useSembunyikanAjakan } from '../components/LayoutPublik'
 
 // Halaman Testimoni Pelanggan.
 //
@@ -19,6 +20,8 @@ export default function Testimoni() {
   const [meta, setMeta] = useState(null)
   const [galat, setGalat] = useState('')
   const [saring, setSaring] = useState(0)
+  // Halaman ini punya kartu ajakan sendiri -> matikan ajakan umum.
+  useSembunyikanAjakan()
 
   useEffect(() => {
     let batal = false
@@ -115,10 +118,16 @@ export default function Testimoni() {
           <ul className="grid gap-3 lg:grid-cols-2">
             {tampil.map((t) => (
               <li key={t.id}>
-                <Kartu className="space-y-3">
+                <Kartu className="reveal h-full space-y-3 transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-lift">
                   <div className="flex items-center gap-3">
                     {t.photo ? (
-                      <img src={t.photo} alt="" className="h-12 w-12 shrink-0 rounded-full object-cover" />
+                      <img
+                        src={t.photo}
+                        alt=""
+                        width={48}
+                        height={48}
+                        className="h-12 w-12 shrink-0 rounded-full object-cover ring-2 ring-[var(--surface-sunken)]"
+                      />
                     ) : (
                       <AvatarPasien nama={t.name} size={48} />
                     )}
@@ -147,19 +156,20 @@ export default function Testimoni() {
         )}
       </section>
 
+      {/* Ajakan mengirim ulasan digabung rapi di satu kartu ringkas -
+          bukan section penuh yang menumpuk di atas ajakan masuk milik
+          LayoutPublik. */}
       <section>
-        <JudulSeksi>Sudah pernah berbelanja?</JudulSeksi>
-        <Kartu className="space-y-3">
-          <p className="text-[16.5px] leading-relaxed text-secondary">
-            Ceritakan pengalaman Anda agar pelanggan lain lebih yakin. Kirim ulasan lewat
-            WhatsApp apotek, lalu petugas akan menampilkannya di halaman ini.
-          </p>
-          <Tombol size="lg" penuh onClick={() => nav('/kontak')}>
+        <Kartu className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="max-w-[46ch]">
+            <p className="text-[17px] font-semibold text-heading">Sudah pernah berbelanja?</p>
+            <p className="mt-1 text-[15.5px] leading-relaxed text-secondary">
+              Kirim ulasan lewat WhatsApp apotek, lalu petugas menampilkannya di halaman ini.
+            </p>
+          </div>
+          <Tombol size="lg" className="shrink-0" onClick={() => nav('/kontak')}>
             <IconBintang size={20} weight="bold" />
             Kirim Ulasan
-          </Tombol>
-          <Tombol variant="secondary" size="lg" penuh onClick={() => nav('/blog')}>
-            Baca berita kesehatan
           </Tombol>
         </Kartu>
       </section>

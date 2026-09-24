@@ -2,10 +2,12 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../lib/api'
 import {
-  Kartu, KepalaHalaman, JudulSeksi, Tombol, InputCari, Kosong, Memuat, Galat, TautanLanjut,
+  Kartu, KepalaHalaman, JudulSeksi, Tombol, InputCari, Kosong, Memuat, Galat,
 } from '../components/ui'
-import { IconTanya, IconWhatsapp, IconPanahKanan } from '../components/Icons'
+import { IconWhatsapp } from '../components/Icons'
 import { IlustrasiFAQ, IlustrasiPencarianKosong } from '../components/Ilustrasi'
+import AkordeonTanya from '../components/AkordeonTanya'
+import { useSembunyikanAjakan } from '../components/LayoutPublik'
 
 // Halaman FAQ (Frequently Asked Questions).
 //
@@ -13,12 +15,20 @@ import { IlustrasiFAQ, IlustrasiPencarianKosong } from '../components/Ilustrasi'
 // ringkas di layar ponsel. Pencarian menyaring pertanyaan dan
 // jawaban sekaligus, karena pelanggan sering mengetik kata kunci
 // yang muncul di jawaban, bukan di judul pertanyaannya.
+//
+// Catatan tata letak: halaman ini TIDAK lagi menambahkan blok
+// ajakan "Masih belum terjawab?" di paling bawah, karena
+// LayoutPublik sudah menyediakan satu blok ajakan masuk untuk
+// pengunjung - dua blok berturut-turut membuat halaman terasa
+// menumpuk. Ajakan menghubungi apoteker kini menyatu di dalam
+// akordeon (infoKontak), bukan sebagai section terpisah.
 export default function FAQ() {
   const nav = useNavigate()
   const [daftar, setDaftar] = useState(null)
   const [galat, setGalat] = useState('')
   const [q, setQ] = useState('')
-  const [buka, setBuka] = useState(null)
+  // Halaman ini punya blok bantuan sendiri -> matikan ajakan umum.
+  useSembunyikanAjakan()
 
   useEffect(() => {
     let batal = false
@@ -74,57 +84,21 @@ export default function FAQ() {
       ) : (
         <section>
           <JudulSeksi>{q.trim() ? `${hasil.length} pertanyaan cocok` : 'Daftar Pertanyaan'}</JudulSeksi>
-          <ul className="space-y-2.5">
-            {hasil.map((f) => {
-              const terbuka = buka === f.id
-              return (
-                <li key={f.id}>
-                  <Kartu padat>
-                    <button
-                      type="button"
-                      onClick={() => setBuka(terbuka ? null : f.id)}
-                      aria-expanded={terbuka}
-                      className="flex w-full items-start gap-3 px-4 py-4 text-left"
-                    >
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--accent-soft)] text-accent">
-                        <IconTanya size={20} weight="bold" />
-                      </span>
-                      <span className="min-w-0 flex-1 text-[17px] font-semibold leading-snug text-primary">
-                        {f.question}
-                      </span>
-                      <IconPanahKanan
-                        size={19}
-                        weight="bold"
-                        className={`mt-1 shrink-0 text-muted transition-transform duration-200 ${terbuka ? 'rotate-90' : ''}`}
-                      />
-                    </button>
-                    {terbuka && (
-                      <p className="border-t border-hairline px-4 py-4 text-[16.5px] leading-relaxed text-secondary">
-                        {f.answer}
-                      </p>
-                    )}
-                  </Kartu>
-                </li>
-              )
-            })}
-          </ul>
+          <AkordeonTanya
+            daftar={hasil}
+            infoKontak={{
+              judul: 'Masih belum terjawab?',
+              keterangan: 'Tim apoteker kami siap membantu Anda lewat WhatsApp atau form pesan.',
+              aksi: (
+                <Tombol size="lg" onClick={() => nav('/kontak')}>
+                  <IconWhatsapp size={21} weight="bold" />
+                  Hubungi Kami
+                </Tombol>
+              ),
+            }}
+          />
         </section>
       )}
-
-      <section>
-        <JudulSeksi>Masih belum terjawab?</JudulSeksi>
-        <Kartu className="space-y-3">
-          <p className="text-[16.5px] leading-relaxed text-secondary">
-            Tim apoteker kami siap membantu Anda secara langsung, baik lewat WhatsApp maupun
-            melalui form pesan.
-          </p>
-          <Tombol size="lg" penuh onClick={() => nav('/kontak')}>
-            <IconWhatsapp size={21} weight="bold" />
-            Hubungi Kami
-          </Tombol>
-          <TautanLanjut onClick={() => nav('/syarat')}>Baca syarat dan ketentuan</TautanLanjut>
-        </Kartu>
-      </section>
     </div>
   )
 }

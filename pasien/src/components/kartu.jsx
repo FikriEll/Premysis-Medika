@@ -28,7 +28,7 @@ export function KartuProduk({ produk, onBuka, onTambah, boleh = true, jumlahDiKe
 
   if (ringkas) {
     return (
-      <Kartu padat className={`flex h-full flex-col ${className}`}>
+      <Kartu padat className={`reveal flex h-full flex-col transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-lift ${className}`}>
         <button
           type="button"
           onClick={() => onBuka?.(produk)}
@@ -89,7 +89,7 @@ export function KartuProduk({ produk, onBuka, onTambah, boleh = true, jumlahDiKe
   }
 
   return (
-    <Kartu padat className={className}>
+    <Kartu padat className={`reveal transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-lift ${className}`}>
       <div className="flex items-start gap-3.5 px-4 pt-4">
         <button
           type="button"
