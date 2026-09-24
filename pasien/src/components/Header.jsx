@@ -3,6 +3,7 @@ import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useTema } from '../lib/theme'
 import { useStore } from '../lib/store'
 import { TombolIkon } from './ui'
+import LogoKlinik from './LogoKlinik'
 import {
   IconMatahari, IconBulan, IconKembali, IconProfil, IconKeranjang,
   IconTutup, IconCari, IconTentang, IconTanya, IconDokumen, IconPerisai,
@@ -367,7 +368,7 @@ export default function Header() {
 
             <div className="border-t border-hairline p-2 pb-8">
               <p className="px-4 py-2 text-[14px] font-semibold uppercase tracking-wide text-muted">
-                Informasi Apotek
+                Informasi Klinik
               </p>
               {MENU_INFO.map(({ to, label, Ikon }) => (
                 <button
@@ -401,21 +402,23 @@ function IconDaftarMenu() {
   )
 }
 
-// Merek apotek: lambang + nama. Dipakai di header dan laci menu.
+// Merek klinik: lambang resmi + nama. Dipakai di header dan laci menu.
+// Gambar lambang diambil dari /logo/logo_emblem.png (hasil pemisahan
+// lambang dari logo resmi, latar transparan agar menyatu dengan tema).
 function Merek() {
+  const { pengaturan } = useStore()
+  const nama = pengaturan?.site_name || 'Klinik Premysis Medika'
+  const tagline = pengaturan?.site_tagline || 'Obat & kebutuhan kesehatan'
+
   return (
     <span className="flex min-w-0 items-center gap-2.5">
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-accent text-[var(--accent-contrast)]">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M3 12h4l2-5 3 10 2-5h7" />
-        </svg>
-      </span>
+      <LogoKlinik size={40} />
       <span className="min-w-0">
         <span className="block truncate text-[17.5px] font-bold leading-tight tracking-tight text-primary">
-          Apotek Premysis
+          {nama}
         </span>
         <span className="block truncate text-[14px] leading-tight text-secondary">
-          Obat &amp; kebutuhan kesehatan
+          {tagline}
         </span>
       </span>
     </span>

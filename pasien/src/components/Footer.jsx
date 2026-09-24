@@ -5,6 +5,7 @@ import {
   IconTentang, IconTanya, IconDokumen, IconPerisai, IconBintang,
   IconBuku, IconLabel,
 } from './Icons'
+import LogoKlinik from './LogoKlinik'
 
 // =============================================================
 // Footer website.
@@ -40,7 +41,8 @@ export default function Footer() {
   const nav = useNavigate()
   const { pengaturan } = useStore()
 
-  const nama = pengaturan?.site_name || 'Apotek Premysis Medika'
+  const nama = pengaturan?.site_name || 'Klinik Premysis Medika'
+  const tagline = pengaturan?.site_tagline || 'Obat lengkap, cepat & terpercaya'
   const telepon = pengaturan?.phone || '0812-1111-2222'
   const whatsapp = (pengaturan?.whatsapp || '6281211112222').replace(/[^0-9]/g, '')
   const email = pengaturan?.email || 'info@apotek.test'
@@ -53,8 +55,16 @@ export default function Footer() {
         <div className="grid gap-9 sm:grid-cols-2 lg:grid-cols-4">
           {/* --- Kolom 1: identitas + kontak --- */}
           <div>
-            <p className="text-[18px] font-bold tracking-tight text-primary">{nama}</p>
-            <p className="mt-1.5 text-[15.5px] leading-relaxed text-secondary">
+            <span className="flex items-center gap-2.5">
+              <LogoKlinik size={40} />
+              <span className="min-w-0">
+                <span className="block text-[18px] font-bold leading-tight tracking-tight text-primary">
+                  {nama}
+                </span>
+                <span className="block text-[14.5px] leading-tight text-secondary">{tagline}</span>
+              </span>
+            </span>
+            <p className="mt-3.5 text-[15.5px] leading-relaxed text-secondary">
               Obat asli, vitamin, dan alat kesehatan - diantar cepat sampai rumah Anda.
             </p>
 

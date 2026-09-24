@@ -66,7 +66,7 @@ export default function FAQ() {
             ilustrasi={<IlustrasiPencarianKosong size={132} />}
             aksi={
               <Tombol size="lg" onClick={() => nav('/kontak')}>
-                Tanya Apotek
+                Tanya Apoteker
               </Tombol>
             }
           />
@@ -120,7 +120,7 @@ export default function FAQ() {
           </p>
           <Tombol size="lg" penuh onClick={() => nav('/kontak')}>
             <IconWhatsapp size={21} weight="bold" />
-            Hubungi Apotek
+            Hubungi Kami
           </Tombol>
           <TautanLanjut onClick={() => nav('/syarat')}>Baca syarat dan ketentuan</TautanLanjut>
         </Kartu>

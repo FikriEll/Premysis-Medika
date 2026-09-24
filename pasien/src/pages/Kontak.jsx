@@ -149,7 +149,7 @@ export default function Kontak() {
         <div className="space-y-2.5">
           {info.whatsapp && (
             <a
-              href={`https://wa.me/${wa}?text=${encodeURIComponent('Halo, saya butuh bantuan dari Apotek Premysis.')}`}
+              href={`https://wa.me/${wa}?text=${encodeURIComponent('Halo, saya butuh bantuan dari Klinik Premysis Medika.')}`}
               target="_blank"
               rel="noreferrer"
               className="flex items-center gap-3.5 rounded-[var(--radius-card)] border border-hairline surface-raised px-4 py-4"
@@ -173,7 +173,7 @@ export default function Kontak() {
                 <IconTelepon size={22} weight="bold" />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-[17px] font-semibold text-primary">Telepon Apotek</span>
+                <span className="block text-[17px] font-semibold text-primary">Telepon Klinik</span>
                 <span className="numeric block text-[15.5px] text-secondary">{info.phone}</span>
               </span>
             </a>

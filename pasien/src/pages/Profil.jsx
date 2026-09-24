@@ -172,7 +172,7 @@ export default function Profil() {
         </Kartu>
 
         <a
-          href="https://wa.me/6281211112222?text=Halo%2C%20saya%20pelanggan%20Apotek%20Premysis%20dan%20butuh%20bantuan."
+          href="https://wa.me/6281211112222?text=Halo%2C%20saya%20pelanggan%20Klinik%20Premysis%20Medika%20dan%20butuh%20bantuan."
           target="_blank"
           rel="noreferrer"
           className="mt-2.5 flex items-center gap-3 rounded-[var(--radius-card)] border border-hairline surface-raised px-4 py-4"
@@ -181,7 +181,7 @@ export default function Profil() {
             <IconWhatsapp size={22} weight="bold" />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block text-[17px] font-semibold text-primary">Hubungi Apotek</span>
+            <span className="block text-[17px] font-semibold text-primary">Hubungi Kami</span>
             <span className="block text-[15.5px] text-secondary">0812-1111-2222</span>
           </span>
           <IconPanahKanan size={18} weight="bold" className="shrink-0 text-muted" />
@@ -195,7 +195,7 @@ export default function Profil() {
 
       <p className="flex items-start gap-2 pb-2 text-[15px] leading-relaxed text-muted lg:col-span-2">
         <IconProfil size={17} className="mt-0.5 shrink-0" />
-        <span>Aplikasi Pelanggan Apotek Premysis Medika.</span>
+        <span>Website pelanggan Klinik Premysis Medika.</span>
       </p>
 
       <Konfirmasi

@@ -109,7 +109,7 @@ export default function TentangKami() {
         </div>
         <Tombol className="mt-2.5" size="lg" penuh onClick={() => nav('/kontak')}>
           <IconWhatsapp size={20} weight="bold" />
-          Hubungi Apotek
+          Hubungi Kami
         </Tombol>
       </section>
     </div>

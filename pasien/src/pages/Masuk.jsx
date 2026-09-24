@@ -3,8 +3,9 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import api from '../lib/api'
 import { useStore } from '../lib/store'
 import { Tombol, Kolom, Input, Lembar } from '../components/ui'
-import { IconMata, IconMataTutup, IconPeringatan, IconPulse, IconWhatsapp, IconPonsel } from '../components/Icons'
+import { IconMata, IconMataTutup, IconPeringatan, IconWhatsapp, IconPonsel } from '../components/Icons'
 import { IlustrasiSehat } from '../components/Ilustrasi'
+import LogoKlinik from '../components/LogoKlinik'
 
 // Logo Google resmi (empat warna) - satu-satunya tempat warna di
 // luar token dipakai, karena ini logo pihak ketiga yang tidak boleh
@@ -99,11 +100,9 @@ export default function Masuk() {
       <div className="mx-auto flex min-h-dvh max-w-[560px] flex-col px-5 pb-8 pt-10">
         <div className="flex-1">
           <div className="flex items-center gap-3">
-            <span className="flex h-12 w-12 items-center justify-center rounded-[14px] bg-accent text-[var(--accent-contrast)]">
-              <IconPulse size={26} weight="bold" />
-            </span>
+            <LogoKlinik size={48} />
             <div>
-              <p className="text-[19.5px] font-bold tracking-tight text-primary">Apotek Premysis</p>
+              <p className="text-[19.5px] font-bold tracking-tight text-primary">Klinik Premysis Medika</p>
               <p className="text-[15px] text-secondary">Obat &amp; kebutuhan kesehatan</p>
             </div>
           </div>
@@ -246,19 +245,19 @@ export default function Masuk() {
         subjudul="Petugas apotek akan membantu Anda membuat password baru."
         footer={
           <a
-            href="https://wa.me/6281211112222?text=Halo%2C%20saya%20lupa%20password%20aplikasi%20Apotek%20Premysis."
+            href="https://wa.me/6281211112222?text=Halo%2C%20saya%20lupa%20password%20website%20Klinik%20Premysis%20Medika."
             target="_blank"
             rel="noreferrer"
             className="inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-[var(--radius-control)] bg-accent px-5 text-[18px] font-semibold text-[var(--accent-contrast)]"
           >
             <IconWhatsapp size={22} weight="bold" />
-            Hubungi Apotek
+            Hubungi Kami
           </a>
         }
       >
         <ol className="space-y-4">
           {[
-            'Tekan tombol Hubungi Apotek di bawah.',
+            'Tekan tombol Hubungi Kami di bawah.',
             'Sebutkan nama dan email/nomor HP yang Anda pakai untuk mendaftar.',
             'Petugas akan membantu Anda masuk kembali.',
           ].map((t, i) => (

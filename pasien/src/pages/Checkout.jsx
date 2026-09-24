@@ -78,7 +78,7 @@ export default function Checkout() {
   const codBoleh = !!metode?.is_cod_available
 
   // Metode kirim harus cocok dengan pilihan terima pesanan:
-  // "Ambil di Apotek" memakai PICKUP (ongkir 0), "Kirim ke Alamat"
+  // "Ambil di Klinik" memakai PICKUP (ongkir 0), "Kirim ke Alamat"
   // memakai kurir. Tanpa ini, pengambilan di apotek bisa ikut dikenai
   // ongkos kirim kurir.
   useEffect(() => {
@@ -183,9 +183,9 @@ export default function Checkout() {
       }
       if (mode === 'kirim') payload.address_id = idKirim
       else {
-        payload.recipient_name = ringkasan?.addresses?.[0]?.recipient_name || 'Ambil di Apotek'
+        payload.recipient_name = ringkasan?.addresses?.[0]?.recipient_name || 'Ambil di Klinik'
         payload.recipient_phone = ringkasan?.addresses?.[0]?.phone || '081211112222'
-        payload.full_address = 'Ambil sendiri di Apotek Premysis Medika'
+        payload.full_address = 'Ambil sendiri di Klinik Premysis Medika'
       }
 
       const pesanan = await checkout(payload)
@@ -253,7 +253,7 @@ export default function Checkout() {
           <div className="space-y-2.5">
             <PilihanKotak
               Ikon={IconLokasi}
-              judul="Ambil di Apotek"
+              judul="Ambil di Klinik"
               ket="Tanpa biaya kirim. Datang dan ambil pesanan Anda."
               terpilih={mode === 'ambil'}
               onClick={() => setMode('ambil')}
@@ -271,7 +271,7 @@ export default function Checkout() {
             <div className="rounded-[var(--radius-control)] surface-sunken px-4 py-3.5">
               <p className="text-[16px] font-semibold text-primary">Alamat pengambilan</p>
               <p className="mt-1 text-[16px] leading-relaxed text-secondary">
-                Apotek Premysis Medika — Jl. Kesehatan Raya No. 45, Depok
+                Klinik Premysis Medika — Jl. Kesehatan Raya No. 45, Depok
               </p>
               <p className="numeric mt-1 text-[16px] text-secondary">0812-1111-2222</p>
             </div>
@@ -493,7 +493,7 @@ export default function Checkout() {
           </Kartu>
 
           <Kartu className="divide-y divide-[var(--border-hairline)]">
-            <BarisInfo label="Cara terima">{mode === 'kirim' ? 'Kirim ke Alamat' : 'Ambil di Apotek'}</BarisInfo>
+            <BarisInfo label="Cara terima">{mode === 'kirim' ? 'Kirim ke Alamat' : 'Ambil di Klinik'}</BarisInfo>
             {mode === 'kirim' && metode && <BarisInfo label="Pengiriman">{metode.name}</BarisInfo>}
             {mode === 'kirim' && (
               <BarisInfo label="Alamat">

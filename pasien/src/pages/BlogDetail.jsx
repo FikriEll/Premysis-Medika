@@ -103,7 +103,7 @@ export default function BlogDetail() {
         </Tombol>
         <Tombol variant="secondary" size="lg" penuh onClick={() => nav('/kontak')}>
           <IconWhatsapp size={20} weight="bold" />
-          Tanya Apoteker
+          Tanya Apotekerer
         </Tombol>
         <Tombol variant="ghost" size="lg" penuh onClick={() => nav('/blog')}>
           <IconKembali size={20} weight="bold" />

@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
 import { useStore } from './lib/store'
 import AppLayout from './components/AppLayout'
 import LayoutPublik from './components/LayoutPublik'
@@ -35,12 +36,22 @@ function Terlindungi({ children }) {
 }
 
 export default function App() {
-  const { memuat, galatMuat, muat } = useStore()
+  const { memuat, galatMuat, muat, pengaturan, user } = useStore()
+
+  // Judul tab mengikuti nama klinik dari pengaturan server, supaya
+  // nama di bilah peramban tidak perlu diubah manual di dua tempat.
+  useEffect(() => {
+    const nama = pengaturan?.site_name || 'Klinik Premysis Medika'
+    const namaDepan = (user?.name || '').split(' ')[0]
+    document.title = namaDepan
+      ? `${nama} · ${namaDepan}`
+      : `${nama} · Belanja Obat & Kebutuhan Kesehatan`
+  }, [pengaturan, user])
 
   if (memuat) {
     return (
       <div className="flex min-h-dvh items-center justify-center surface-canvas">
-        <p className="text-[15.5px] text-muted">Memuat katalog apotek...</p>
+        <p className="text-[15.5px] text-muted">Memuat katalog klinik...</p>
       </div>
     )
   }

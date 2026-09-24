@@ -301,7 +301,7 @@ export default function PengaturanPengiriman() {
             {[
               'Pesanan dan pembayaran Anda kami konfirmasi lebih dulu.',
               'Apoteker menyiapkan dan memeriksa obat, termasuk kelayakan masa simpannya.',
-              'Kurir mengantar ke alamat utama, atau Anda bisa memilih Ambil di Apotek.',
+              'Kurir mengantar ke alamat utama, atau Anda bisa memilih Ambil di Klinik.',
               'Anda dapat memantau status pengiriman dari halaman Pesanan.',
             ].map((t, i) => (
               <li key={i} className="flex gap-3.5">

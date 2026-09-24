@@ -18,7 +18,7 @@ export function StoreProvider({ children }) {
   const [galatMuat, setGalatMuat] = useState(null)
   const [toast, setToast] = useState(null)
 
-  const [katalog, setKatalog] = useState({ categories: [], featured_products: [], latest_products: [], popular_products: [], promos: [], testimonials: [] })
+  const [katalog, setKatalog] = useState({ categories: [], featured_products: [], latest_products: [], popular_products: [], promos: [], testimonials: [], faqs: [], promises: [], settings: null })
   const [pengaturan, setPengaturan] = useState(null)
   const [daftarProduk, setDaftarProduk] = useState([])
   const [metaProduk, setMetaProduk] = useState(null)
@@ -346,6 +346,8 @@ export function StoreProvider({ children }) {
       produkPopuler: katalog.popular_products || [],
       promo: katalog.promos || [],
       testimoni: katalog.testimonials || [],
+      faq: katalog.faqs || [],
+      janji: katalog.promises || [],
 
       daftarProduk,
       metaProduk,

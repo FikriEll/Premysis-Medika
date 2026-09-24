@@ -7,14 +7,21 @@ import {
   IconBelanja, IconKeranjang, IconPesanan, IconProfil,
   IconWhatsapp, IconLokasi, IconSparkle, IconToko,
 } from '../components/Icons'
-import { IlustrasiKeranjang } from '../components/Ilustrasi'
+import { IlustrasiKeranjang, IlustrasiObat } from '../components/Ilustrasi'
 import { statusPesanan } from '../lib/status'
+import Carousel from '../components/Carousel'
+import LogoKlinik from '../components/LogoKlinik'
+import { JanjiLayanan, TanyaJawab, TestimoniSingkat, SuratKabar } from '../components/BagianBeranda'
 
-// F-02 Beranda - e-commerce.
+// F-02 Beranda - storefront web.
 //
-// Struktur sengaja sederhana: sapaan -> pencarian/kategori ->
-// promo -> produk unggulan -> pesanan terakhir -> informasi apotek.
-// Tidak ramai, maksimal 3-5 tindakan utama dalam satu layar.
+// Susunan bagian (urut dari atas ke bawah) sengaja dibuat seperti
+// halaman depan toko daring pada umumnya:
+//   sapaan -> akses cepat -> carousel sorotan -> kategori ->
+//   promo -> produk unggulan -> janji layanan -> testimoni ->
+//   tanya jawab -> pesanan terakhir -> band kontak -> surat kabar.
+// Bagian akun (pesanan terakhir) hanya muncul bila pengguna masuk,
+// supaya pengunjung baru melihat versi yang lebih ringkas.
 const AKSES_CEPAT = [
   { to: '/toko', judul: 'Belanja Obat', ket: 'Obat & kebutuhan kesehatan', Ikon: IconBelanja, warna: 'permukaan-mint' },
   { to: '/keranjang', judul: 'Keranjang', ket: 'Barang yang akan dibeli', Ikon: IconKeranjang, warna: 'permukaan-sky' },
@@ -22,15 +29,65 @@ const AKSES_CEPAT = [
   { to: '/profil', judul: 'Profil Saya', ket: 'Data diri dan alamat', Ikon: IconProfil, warna: 'permukaan-honey' },
 ]
 
+// Sorotan beranda. Isinya mengikuti data promo bila ada; kalau tidak,
+// dipakai sorotan bawaan tentang layanan klinik supaya carousel tidak
+// pernah kosong di instalasi baru.
+function susunSlide(promo, nav) {
+  if (promo.length > 0) {
+    const warna = ['permukaan-sambutan', 'permukaan-mint', 'permukaan-sky', 'permukaan-peach', 'permukaan-honey']
+    return promo.slice(0, 5).map((p, i) => ({
+      kunci: `promo-${p.id}`,
+      label: 'Promo Aktif',
+      judul: p.name,
+      isi: p.description || `Pakai kode ${p.code} saat membayar dan dapatkan potongan harga.`,
+      aksi: 'Pakai Promo',
+      warna: warna[i % warna.length],
+      kePromo: true,
+      kode: p.code,
+    }))
+  }
+
+  return [
+    {
+      kunci: 'layanan-antar',
+      label: 'Antar ke Rumah',
+      judul: 'Obat diantar sampai depan pintu',
+      isi: 'Pesan lewat website, apoteker menyiapkan, lalu kurir mengantar ke alamat Anda.',
+      aksi: 'Mulai Belanja',
+      warna: 'permukaan-sambutan',
+      keToko: true,
+      ilustrasi: <IlustrasiKeranjang size={150} />,
+    },
+    {
+      kunci: 'layanan-konsultasi',
+      label: 'Konsultasi Gratis',
+      judul: 'Tanya apoteker tanpa biaya tambahan',
+      isi: 'Bingung dosis atau aturan pakai? Tanyakan lewat WhatsApp sebelum membeli.',
+      aksi: 'Lihat Katalog',
+      warna: 'permukaan-mint',
+      keToko: true,
+      ilustrasi: <IlustrasiObat size={150} />,
+    },
+  ]
+}
+
 export default function Beranda() {
   const nav = useNavigate()
-  const { user, produkUnggulan, promo, pesananSaya, kategori, beriToast, tambahKeranjang } = useStore()
+  const {
+    user, produkUnggulan, promo, pesananSaya, kategori, janji, faq, testimoni,
+    pengaturan, beriToast, tambahKeranjang,
+  } = useStore()
 
   const pesananTerakhir = pesananSaya[0]
   const jam = new Date().getHours()
   const sapaan = jam < 11 ? 'Selamat pagi' : jam < 15 ? 'Selamat siang' : jam < 19 ? 'Selamat sore' : 'Selamat malam'
   const namaDepan = (user?.name || '').split(' ')[0]
   const tamu = !user
+
+  const namaKlinik = pengaturan?.site_name || 'Klinik Premysis Medika'
+  const tagline = pengaturan?.site_tagline || 'Obat lengkap, cepat & terpercaya'
+
+  const slide = susunSlide(promo, nav)
 
   const tambah = async (p) => {
     if (tamu) {
@@ -46,11 +103,27 @@ export default function Beranda() {
     }
   }
 
+  const aksiSlide = (s) => {
+    if (s.keToko) nav('/toko')
+    else nav('/promo')
+  }
+
   return (
     <div className="space-y-8">
       {/* --- Sapaan / hero --- */}
       <section className="permukaan-sambutan relative overflow-hidden rounded-[var(--radius-shell)] border border-hairline">
         <div className="relative z-10 max-w-[62%] px-6 py-7 sm:max-w-[58%] sm:px-9 sm:py-10 lg:max-w-[55%]">
+          {/* Lambang + nama resmi klinik */}
+          <span className="mb-4 inline-flex items-center gap-2.5">
+            <LogoKlinik size={44} />
+            <span className="min-w-0">
+              <span className="block truncate text-[17px] font-bold leading-tight tracking-tight text-primary">
+                {namaKlinik}
+              </span>
+              <span className="block truncate text-[14.5px] leading-tight text-secondary">{tagline}</span>
+            </span>
+          </span>
+
           <h1 className="text-[26px] font-bold leading-tight tracking-tight text-primary sm:text-[32px]">
             {tamu ? `${sapaan}!` : `Halo, ${namaDepan}`}
           </h1>
@@ -90,6 +163,9 @@ export default function Beranda() {
           ))}
         </div>
       </section>
+
+      {/* --- Carousel sorotan --- */}
+      <Carousel slide={slide} onAksi={aksiSlide} />
 
       {/* --- Kategori --- */}
       {kategori.length > 0 && (
@@ -214,6 +290,15 @@ export default function Beranda() {
         )}
       </section>
 
+      {/* --- Yang Kami Janjikan --- */}
+      <JanjiLayanan janji={janji} />
+
+      {/* --- Testimoni --- */}
+      <TestimoniSingkat daftar={testimoni} onLihatSemua={() => nav('/testimoni')} />
+
+      {/* --- Tanya jawab --- */}
+      <TanyaJawab daftar={faq} onLihatSemua={() => nav('/faq')} />
+
       {/* --- Pesanan terakhir --- */}
       {pesananTerakhir && (
         <section>
@@ -242,8 +327,7 @@ export default function Beranda() {
 
       {/* --- Informasi apotek ---
           Di versi web, tautan informasi sudah pindah ke footer tiga
-          kolom, jadi di sini cukup satu band kontak yang ringkas.
-          Tidak ada lagi daftar tautan ganda seperti versi aplikasi. */}
+          kolom, jadi di sini cukup satu band kontak yang ringkas. */}
       <section className="overflow-hidden rounded-[var(--radius-shell)] border border-hairline surface-raised">
         <div className="grid items-center gap-6 p-6 sm:grid-cols-[1fr_auto] sm:p-8">
           <div className="flex items-start gap-4">
@@ -253,12 +337,12 @@ export default function Beranda() {
             <div className="min-w-0">
               <p className="text-[19px] font-bold text-primary">Butuh bantuan memilih obat?</p>
               <p className="mt-1.5 text-[16.5px] leading-relaxed text-secondary">
-                Apoteker kami siap membantu. Datang ke apotek atau hubungi kami - pesanan Anda juga
+                Apoteker kami siap membantu. Datang ke klinik atau hubungi kami - pesanan Anda juga
                 bisa diantar sampai rumah.
               </p>
               <p className="mt-3 flex items-start gap-2.5 text-[16px] leading-relaxed text-secondary">
                 <IconLokasi size={18} weight="bold" className="mt-0.5 shrink-0 text-accent" />
-                <span>Jl. Kesehatan Raya No. 45, Depok, Jawa Barat</span>
+                <span>{pengaturan?.address || 'Jl. Kesehatan Raya No. 45, Depok, Jawa Barat'}</span>
               </p>
             </div>
           </div>
@@ -283,6 +367,13 @@ export default function Beranda() {
           </div>
         </div>
       </section>
+
+      {/* --- Langganan kabar promo --- */}
+      <SuratKabar
+        onKirim={async (email) => {
+          beriToast(`Terima kasih! Kami akan mengabari ${email} saat ada promo.`, 'sukses')
+        }}
+      />
     </div>
   )
 }

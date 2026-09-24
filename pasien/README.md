@@ -1,4 +1,4 @@
-# Aplikasi Pelanggan — Apotek Premysis Medika (Web)
+# Aplikasi Pelanggan — Klinik Premysis Medika (Web)
 
 Antarmuka pelanggan untuk apotek: **website responsif** (bukan lagi aplikasi
 mobile satu kolom). Satu basis kode melayani dua wajah:

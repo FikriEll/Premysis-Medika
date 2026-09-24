@@ -16,7 +16,7 @@ import { IconToko } from './Icons'
 //
 // Layout WEB: konten selebar `wadah`, lalu footer tiga kolom yang
 // sudah memuat semua tautan informasi - jadi tidak perlu lagi
-// blok "Informasi Apotek" menumpuk di bawah konten seperti versi
+// blok "Informasi Klinik" menumpuk di bawah konten seperti versi
 // aplikasi mobile sebelumnya.
 //
 // Menu bawah (BottomNav) hanya muncul bila pengunjung sudah masuk,

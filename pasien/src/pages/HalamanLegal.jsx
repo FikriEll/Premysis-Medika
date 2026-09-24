@@ -114,7 +114,7 @@ export default function HalamanLegal({ jenis = 'terms' }) {
         <JudulSeksi>Ada yang ingin ditanyakan?</JudulSeksi>
         <Tombol size="lg" penuh onClick={() => nav('/kontak')}>
           <IconWhatsapp size={21} weight="bold" />
-          Hubungi Apotek
+          Hubungi Kami
         </Tombol>
       </section>
     </div>
