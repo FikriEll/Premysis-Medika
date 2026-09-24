@@ -2,19 +2,20 @@
 /* Font memakai berkas standar paket. Fontsource hanya menyediakan
    index.css/wght.css untuk font variabel, dan subset per-aksara
    diambil otomatis oleh browser lewat unicode-range di dalamnya. */
-@import "@fontsource-variable/plus-jakarta-sans";
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/playfair-display";
 @import "@fontsource-variable/geist-mono";
 
 /* =============================================================
    Premysis Medika - Aplikasi Pasien
-   Token desain mengikuti brief "Aplikasi Pasien" (clean, friendly,
-   medical, human-centered) + skill "design-taste-frontend".
+   Tampilan mengikuti referensi "Live Oak Pharmacy": latar krem
+   hangat (#FBF9F6), warna merek hijau emerald 900/950, judul
+   Playfair Display, isi Inter.
 
    BRIEF YANG DIPAKSA DI FILE INI:
    - Body 15-16px, caption minimal 13px, judul halaman 22-26px.
-   - Sedikit warna: SATU warna aksi (teal hijau) + netral.
-     Warna lain hanya tint sangat lembut untuk ilustrasi.
-   - Tanpa gradient berlebihan: kartu sambutan memakai satu tint rata.
+   - Latar krem hangat, teks emerald gelap / stone.
+   - SATU warna aksi (emerald) + netral hangat (stone).
    - Kontras teks tinggi (WCAG AA) di kedua mode.
    - Target sentuh 44-48px, jarak antar tombol lega.
    ============================================================= */
@@ -22,57 +23,58 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  /* --- Accent: teal medis (brand asli dipertahankan) --- */
-  --color-brand-50: #eefbf7;
-  --color-brand-100: #d3f4ea;
-  --color-brand-200: #a8e8d8;
-  --color-brand-300: #74d5c1;
-  --color-brand-400: #3fbca6;
-  --color-brand-500: #1aa08b;
-  --color-brand-600: #0e8271;
-  --color-brand-700: #0e685d;
-  --color-brand-800: #10534b;
-  --color-brand-900: #0f443f;
-  --color-brand-950: #042724;
+  /* --- Accent: hijau emerald (merek Live Oak) --- */
+  --color-brand-50: #ecfdf5;
+  --color-brand-100: #d1fae5;
+  --color-brand-200: #a7f3d0;
+  --color-brand-300: #6ee7b7;
+  --color-brand-400: #34d399;
+  --color-brand-500: #10b981;
+  --color-brand-600: #059669;
+  --color-brand-700: #047857;
+  --color-brand-800: #065f46;
+  --color-brand-900: #064e3b;
+  --color-brand-950: #022c22;
 
-  /* --- Netral: slate sejuk (satu keluarga, tanpa warm gray) --- */
-  --color-ink-50: #f6f8f9;
-  --color-ink-100: #eceff2;
-  --color-ink-200: #dbe1e7;
-  --color-ink-300: #bcc7d1;
-  --color-ink-400: #8e9daa;
-  --color-ink-500: #6b7b8a;
-  --color-ink-600: #536170;
-  --color-ink-700: #414c58;
-  --color-ink-800: #2c343d;
-  --color-ink-900: #1b2127;
-  --color-ink-950: #101418;
+  /* --- Netral: stone hangat (satu keluarga, tanpa gray dingin) --- */
+  --color-ink-50: #fafaf9;
+  --color-ink-100: #f5f5f4;
+  --color-ink-200: #e7e5e4;
+  --color-ink-300: #d6d3d1;
+  --color-ink-400: #a8a29e;
+  --color-ink-500: #78716c;
+  --color-ink-600: #57534e;
+  --color-ink-700: #44403c;
+  --color-ink-800: #292524;
+  --color-ink-900: #1c1917;
+  --color-ink-950: #0c0a09;
 
   /* --- Semantik status (dipakai hemat, hanya makna) --- */
-  /* Amber dinaikkan dari #a86504: sebagai TEKS di atas latar
-     amber-soft (#fdf3e3) hanya mencapai 4.22:1, gagal tipis dari
-     ambang WCAG AA 4.5:1. Nilai baru lolos di kedua latar
-     (amber-soft maupun putih) sehingga pesan peringatan tetap
+  /* Amber dinaikkan: sebagai TEKS di atas latar amber-soft hanya
+     mencapai 4.22:1, gagal tipis dari ambang WCAG AA 4.5:1. Nilai
+     baru lolos di kedua latar sehingga pesan peringatan tetap
      terbaca oleh pasien lanjut usia (PRD N-02). */
   --color-signal-amber: #8a5300;
   --color-signal-amber-soft: #fdf3e3;
   --color-signal-rose: #b4232f;
   --color-signal-rose-soft: #fdedee;
-  --color-signal-green: #2f6b4a;
-  --color-signal-green-soft: #eaf3ed;
+  --color-signal-green: #1d6b4e;
+  --color-signal-green-soft: #e7f6ef;
   --color-signal-blue: #1f5f8b;
   --color-signal-blue-soft: #e8f1f7;
   /* Varian "solid": dipakai sebagai isian tombol berteks putih, jadi
      nilainya harus tetap pekat di kedua mode (bukan warna teks). */
   --color-signal-rose-solid: #b4232f;
-  --color-signal-green-solid: #2f6b4a;
+  --color-signal-green-solid: #1d6b4e;
 
   /* --- Tipografi --- */
-  /* Brief §4: font sans-serif yang mudah dibaca. Plus Jakarta Sans
-     dirancang untuk teks antarmuka berbahasa Indonesia dan punya
-     bobot yang tegas, cocok untuk pengguna lansia. */
-  --font-sans: "Plus Jakarta Sans Variable", ui-sans-serif, system-ui,
+  /* Brief §4: font sans-serif yang mudah dibaca. Inter dipakai untuk
+     seluruh teks isi; Playfair Display untuk judul supaya tampil
+     seperti referensi "Live Oak Pharmacy". */
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui,
     -apple-system, "Segoe UI", sans-serif;
+  --font-serif: "Playfair Display Variable", ui-serif, Georgia,
+    "Times New Roman", serif;
   --font-mono: "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo,
     monospace;
 
@@ -97,6 +99,8 @@
   /* --- Easing: massa, bukan linear --- */
   --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out-soft: cubic-bezier(0.32, 0.72, 0, 1);
+  /* Easing "reveal" persis dari referensi Live Oak. */
+  --ease-reveal: cubic-bezier(0.5, 0, 0, 1);
 }
 
 /* =============================================================
@@ -104,26 +108,28 @@
    Dipakai lewat utility kustom di bawah supaya konsisten.
    ============================================================= */
 :root {
-  --surface-canvas: #f4f7f8;
+  /* Latar krem hangat persis seperti referensi (#FBF9F6). */
+  --surface-canvas: #fbf9f6;
   --surface-raised: #ffffff;
-  --surface-sunken: #eef2f4;
-  --surface-hover: #f6f9fa;
+  --surface-sunken: #f4f1ec;
+  --surface-hover: #f6f3ee;
   --surface-sidebar: #ffffff;
-  --border-hairline: #e2e8ec;
-  --border-strong: #cfd8de;
-  --text-primary: #1b2127;
-  --text-secondary: #536170;
-  /* Dinaikkan dari #8e9daa (rasio 2.78:1 di atas putih = gagal WCAG AA).
-     Aplikasi ini dipakai ibu hamil dan orang tua (PRD N-02), jadi
-     kontras teks sekunder wajib lolos AA, bukan sekadar terlihat kalem. */
-  --text-muted: #5f6b78;
-  /* Dinaikkan dari #0e8271 (4.38:1 di atas canvas = gagal tipis).
-     Nilai ini dipakai untuk tautan dan teks aksen berukuran kecil. */
-  --accent: #0b7566;
-  --accent-soft: #eefbf7;
+  --border-hairline: #e7e2d9;
+  --border-strong: #d8d2c6;
+  --text-primary: #1c1917;
+  --text-secondary: #57534e;
+  /* Dinaikkan agar lolos WCAG AA 4.5:1 di atas krem. Aplikasi ini
+     dipakai ibu hamil dan orang tua (PRD N-02), jadi kontras teks
+     sekunder wajib lolos AA, bukan sekadar terlihat kalem. */
+  --text-muted: #6b6560;
+  /* Warna aksi: emerald 900 (hijau merek Live Oak). */
+  --accent: #064e3b;
+  --accent-soft: #ecfdf5;
   --accent-contrast: #ffffff;
-  --focus-ring: #1aa08b;
-  --shadow-tint: 200 24% 24%;
+  --focus-ring: #059669;
+  /* Warna judul: emerald 950, dipakai oleh judul bergaya serif. */
+  --heading: #022c22;
+  --shadow-tint: 30 24% 20%;
   --shadow-soft: 0 1px 2px hsl(var(--shadow-tint) / 0.05),
     0 8px 24px -12px hsl(var(--shadow-tint) / 0.1);
   --shadow-lift: 0 1px 2px hsl(var(--shadow-tint) / 0.06),
@@ -137,9 +143,8 @@
        --kuat-<nama>  = ikon/teks di atas tint itu
 
      Aturan warna aksi TIDAK berubah: tombol, tautan, dan status tetap
-     memakai teal (--accent) saja. Warna di bawah ini hanya untuk latar
-     tile supaya tiap pintasan mudah dibedakan sekilas oleh pasien
-     lansia, dan untuk mewarnai ilustrasi.
+     memakai emerald (--accent) saja. Warna di bawah ini hanya untuk
+     latar tile supaya tiap pintasan mudah dibedakan sekilas.
 
      Semua pasangan (kuat di atas tint) sudah dihitung lolos WCAG AA
      4.5:1, dan ikonnya tetap disertai LABEL TEKS - jadi warna bukan
@@ -151,10 +156,10 @@
   --illus-mata: #33302e;
   --illus-putih: #ffffff;
 
-  /* Tiga tint teal, makin lembut ke kanan. */
-  --illus-teal-1: #3fbca6;
-  --illus-teal-2: #8fd9cc;
-  --illus-teal-3: #dcf6ef;
+  /* Tiga tint emerald, makin lembut ke kanan. */
+  --illus-teal-1: #10b981;
+  --illus-teal-2: #6ee7b7;
+  --illus-teal-3: #d1fae5;
   /* Satu aksen hangat, dipakai hemat (hati, pipi). */
   --illus-hangat: #e8846f;
   --illus-hangat-soft: #fbe3dd;
@@ -166,36 +171,35 @@
   --kuat-coral: #841f22;
   --tint-honey: #fbf4e5;
   --kuat-honey: #84661f;
-  --tint-mint: #e5fbf3;
-  --kuat-mint: #1d7c5c;
+  --tint-mint: #e7f6ef;
+  --kuat-mint: #1d6b4e;
   --tint-sky: #e5f0fb;
   --kuat-sky: #1f5584;
 
   /* Kartu sambutan: satu tint rata, bukan gradient. */
-  --sambutan-tint: #e8f7f3;
+  --sambutan-tint: #eaf4ee;
 
   color-scheme: light;
 }
 
 .dark {
-  --surface-canvas: #0d1114;
-  --surface-raised: #151a1f;
-  --surface-sunken: #11161a;
-  --surface-hover: #1a2127;
-  --surface-sidebar: #121719;
-  --border-hairline: #232c33;
-  --border-strong: #313c45;
-  --text-primary: #e9eef1;
-  --text-secondary: #a3b0ba;
-  --text-muted: #77848f;
-  --accent: #3fbca6;
-  --accent-soft: #102c29;
-  --accent-contrast: #042724;
-  --focus-ring: #3fbca6;
+  --surface-canvas: #0c0a09;
+  --surface-raised: #1c1917;
+  --surface-sunken: #171412;
+  --surface-hover: #292524;
+  --surface-sidebar: #141210;
+  --border-hairline: #2e2a26;
+  --border-strong: #44403c;
+  --text-primary: #f5f5f4;
+  --text-secondary: #a8a29e;
+  --text-muted: #8b8580;
+  --accent: #34d399;
+  --accent-soft: #052e24;
+  --accent-contrast: #022c22;
+  --focus-ring: #34d399;
+  --heading: #a7f3d0;
   /* Warna sinyal: di mode gelap nilai teks dinaikkan terangnya dan
-     latar tint diturunkan, supaya kontras tetap lolos AA.
-     Amber dinaikkan ke #eeb972 karena #e0a552 hanya mencapai 4.22:1
-     di atas tint-nya sendiri (gagal tipis dari ambang 4.5:1). */
+     latar tint diturunkan, supaya kontras tetap lolos AA. */
   --color-signal-amber: #eeb972;
   --color-signal-amber-soft: #33260f;
   --color-signal-rose: #f08a92;
@@ -206,7 +210,7 @@
   --color-signal-blue-soft: #10293a;
   --color-signal-rose-solid: #a8323d;
   --color-signal-green-solid: #2f7a52;
-  --shadow-tint: 200 40% 2%;
+  --shadow-tint: 30 40% 2%;
   --shadow-soft: 0 1px 2px hsl(var(--shadow-tint) / 0.4),
     0 8px 24px -12px hsl(var(--shadow-tint) / 0.6);
   --shadow-lift: 0 1px 2px hsl(var(--shadow-tint) / 0.5),
@@ -214,17 +218,16 @@
 
   /* Palet ilustrasi versi gelap: hue tetap, kecerahan diturunkan
      supaya ilustrasi tidak menyala di latar gelap. Kulit TIDAK
-     digelapkan berlebihan agar figur tetap terlihat sebagai manusia,
-     bukan bayangan. */
+     digelapkan berlebihan agar figur tetap terlihat sebagai manusia. */
   --illus-kulit: #e8bd9d;
   --illus-kulit-teduh: #cf9a77;
   --illus-rambut: #3b2a21;
   --illus-mata: #f0ece9;
   --illus-putih: #eef3f5;
 
-  --illus-teal-1: #3fbca6;
+  --illus-teal-1: #34d399;
   --illus-teal-2: #2f8f7d;
-  --illus-teal-3: #12332e;
+  --illus-teal-3: #0d2f26;
   --illus-hangat: #c9755f;
   --illus-hangat-soft: #33211d;
 
@@ -236,12 +239,12 @@
   --kuat-coral: #d86468;
   --tint-honey: #332b19;
   --kuat-honey: #d8b564;
-  --tint-mint: #19332b;
+  --tint-mint: #12332a;
   --kuat-mint: #64d8b1;
   --tint-sky: #192733;
   --kuat-sky: #64a2d8;
 
-  --sambutan-tint: #123029;
+  --sambutan-tint: #102b23;
 
   color-scheme: dark;
 }
@@ -278,6 +281,9 @@
 }
 @utility text-muted {
   color: var(--text-muted);
+}
+@utility text-heading {
+  color: var(--heading);
 }
 @utility bg-accent {
   background-color: var(--accent);
@@ -351,7 +357,7 @@
 
 /* ---------------------------------------------------------------
    Permukaan berwarna (dipakai hemat).
-   permukaan-1 tetap tint teal (dipakai di banyak tempat sebagai
+   permukaan-1 tetap tint emerald (dipakai di banyak tempat sebagai
    penanda "terpilih"/lencana). permukaan-<hue> dipakai untuk tile
    pintasan supaya tiap pintasan mudah dibedakan.
 
@@ -411,6 +417,26 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* Judul di halaman publik memakai Playfair Display, seperti
+   referensi Live Oak. Ditulis dengan :where() supaya spesifisitasnya
+   nol - utility Tailwind (font-sans, text-white, ...) tetap menang
+   bila sebuah judul perlu gaya lain. */
+:where(.publik) h1,
+:where(.publik) h2,
+:where(.publik) h3,
+:where(.publik) h4 {
+  font-family: var(--font-serif);
+}
+
+/* Halaman publik memakai beberapa hiasan (gumpalan blur) yang
+   sengaja keluar tepi. `overflow-x: clip` memotong luberan
+   mendatar itu tanpa membuat wadah gulir baru, sehingga header
+   yang fixed tetap bekerja dan halaman tidak bisa digeser ke
+   samping di ponsel. */
+.publik {
+  overflow-x: clip;
+}
+
 /* Angka & kode selalu monospace tabular (VISUAL_DENSITY 6). */
 .font-mono,
 kbd,
@@ -453,26 +479,39 @@ p {
   left: 0;
 }
 
-/* Scrollbar tipis, warna ikut token. */
+/* Scrollbar tipis 6px dengan warna referensi Live Oak. */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--border-strong) transparent;
+  scrollbar-color: #d6d3d1 transparent;
 }
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #fafaf9;
 }
 ::-webkit-scrollbar-thumb {
-  background-color: var(--border-strong);
-  border-radius: 9999px;
-  border: 3px solid transparent;
-  background-clip: content-box;
+  background-color: #d6d3d1;
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background-color: var(--text-muted);
+  background-color: #a8a29e;
+}
+.dark ::-webkit-scrollbar-track {
+  background: #171412;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background-color: #44403c;
+}
+.dark * {
+  scrollbar-color: #44403c transparent;
+}
+
+/* Pemilihan teks: hijau emerald lembut, seperti referensi. */
+::selection {
+  background-color: #d1fae5;
+  color: #022c22;
 }
 
 /* =============================================================
@@ -504,6 +543,60 @@ p {
   animation: pm-fade 0.28s var(--ease-out-soft) both;
 }
 
+/* ---------------------------------------------------------------
+   Reveal saat masuk viewport (referensi Live Oak).
+
+   Keadaan awal opacity 0 + translateY(30px); begitu elemen masuk
+   layar, Intersection Observer menambahkan kelas .active. Waktunya
+   memakai cubic-bezier persis dari referensi.
+
+   PENTING: bila JavaScript mati atau observer gagal, elemen harus
+   tetap terlihat. Karena itu keadaan awal HANYA disembunyikan bila
+   root punya kelas .js-reveal (dipasang oleh skrip kecil di
+   main.jsx). Tanpa kelas itu, .reveal tampil normal.
+   --------------------------------------------------------------- */
+.reveal {
+  opacity: 1;
+  transform: none;
+}
+.js-reveal .reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+  will-change: opacity, transform;
+}
+.js-reveal .reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ---------------------------------------------------------------
+   Kartu melayang (referensi Live Oak).
+   --------------------------------------------------------------- */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+.animate-float-delayed {
+  animation: float 6s ease-in-out 1.5s infinite;
+}
+
+/* Topeng gambar melengkung (referensi Live Oak). Sengaja disediakan
+   sebagai kelas terpisah; sebagian gambar memakai object-cover +
+   overlay gradient, sama seperti berkas sumber. */
+.image-mask {
+  -webkit-mask-image: radial-gradient(120% 120% at 70% 30%, #000 60%, transparent 100%);
+  mask-image: radial-gradient(120% 120% at 70% 30%, #000 60%, transparent 100%);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -512,6 +605,11 @@ p {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+  /* Reveal langsung tampil, tanpa animasi. */
+  .js-reveal .reveal {
+    opacity: 1;
+    transform: none;
   }
 }
 

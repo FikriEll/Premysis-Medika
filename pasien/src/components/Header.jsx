@@ -8,7 +8,7 @@ import {
   IconMatahari, IconBulan, IconKembali, IconProfil, IconKeranjang,
   IconTutup, IconCari, IconTentang, IconTanya, IconDokumen, IconPerisai,
   IconBintang, IconBuku, IconLabel, IconWhatsapp, IconPesanan, IconGear,
-  IconHati, IconKeluar, IconToko,
+  IconHati, IconKeluar, IconToko, IconTelepon, IconPanahKanan,
 } from './Icons'
 
 // Judul halaman memakai istilah Indonesia sehari-hari.
@@ -37,6 +37,8 @@ const JUDUL = {
 }
 
 // Menu navigasi utama versi web (ditampilkan di layar >= 1024px).
+// Istilahnya dibuat sepadan dengan referensi Live Oak
+// (About Us / Services / Mobile App / Contact).
 const MENU_UTAMA = [
   { to: '/', label: 'Beranda', end: true },
   { to: '/toko', label: 'Toko Obat' },
@@ -67,11 +69,20 @@ const MENU_AKUN = [
   { to: '/pengaturan/pengiriman', label: 'Pengaturan Pengiriman', Ikon: IconToko },
 ]
 
+// =============================================================
+// Header mengikuti navigasi referensi Live Oak:
+//   - menempel di atas (fixed), tinggi 80px (h-20)
+//   - latar krem tembus pandang + backdrop-blur-md
+//   - tautan stone, berubah emerald saat disorot/aktif
+//   - satu tombol pil emerald (aksi utama) di kanan
+// Semua fungsi lama (pencarian, keranjang, tema, menu akun, laci
+// ponsel) tetap ada, hanya tampilannya yang disesuaikan.
+// =============================================================
 export default function Header() {
   const nav = useNavigate()
   const { pathname } = useLocation()
   const { gelap, toggleTema } = useTema()
-  const { user, jumlahKeranjang, logout, beriToast } = useStore()
+  const { user, jumlahKeranjang, logout, beriToast, pengaturan } = useStore()
 
   const [laci, setLaci] = useState(false) // laci menu ponsel
   const [menuAkun, setMenuAkun] = useState(false)
@@ -87,6 +98,8 @@ export default function Header() {
           ? 'Pembayaran'
           : '')
   const beranda = pathname === '/'
+
+  const telepon = (pengaturan?.phone || '0812-1111-2222').replace(/[^0-9+]/g, '')
 
   const kirimCari = (e) => {
     e.preventDefault()
@@ -108,9 +121,8 @@ export default function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-[var(--z-sticky)] border-b border-hairline bg-[var(--surface-canvas)]/92 backdrop-blur-md">
-        {/* --- Baris utama --- */}
-        <div className="wadah flex h-16 items-center gap-3">
+      <header className="fixed inset-x-0 top-0 z-[var(--z-sticky)] h-20 border-b border-hairline bg-[var(--surface-canvas)]/80 backdrop-blur-md">
+        <div className="wadah flex h-full items-center gap-3">
           {/* Ponsel: tombol kembali / judul halaman */}
           <div className="flex min-w-0 flex-1 items-center gap-1 lg:hidden">
             {!beranda && (
@@ -123,7 +135,7 @@ export default function Header() {
                 <Merek />
               </Link>
             ) : (
-              <h1 className="min-w-0 flex-1 truncate text-[19px] font-bold tracking-tight text-primary">
+              <h1 className="min-w-0 flex-1 truncate text-[19px] font-bold tracking-tight text-heading">
                 {judul}
               </h1>
             )}
@@ -134,15 +146,15 @@ export default function Header() {
             <Merek />
           </Link>
 
-          <nav aria-label="Navigasi utama" className="hidden lg:flex lg:items-center lg:gap-1">
+          <nav aria-label="Navigasi utama" className="hidden lg:flex lg:items-center lg:gap-0.5 xl:gap-1">
             {MENU_UTAMA.map((m) => (
               <NavLink
                 key={m.to}
                 to={m.to}
                 end={m.end}
                 className={({ isActive }) =>
-                  `rounded-[var(--radius-control)] px-3.5 py-2 text-[16px] font-semibold transition-colors ${
-                    isActive ? 'bg-accent-soft text-accent' : 'text-secondary hover:surface-hover hover:text-primary'
+                  `whitespace-nowrap rounded-[var(--radius-control)] px-3 py-2 text-[15.5px] font-medium transition-colors ${
+                    isActive ? 'text-accent' : 'text-secondary hover:text-accent'
                   }`
                 }
               >
@@ -152,24 +164,24 @@ export default function Header() {
           </nav>
 
           {/* Pencarian cepat (layar besar) */}
-          <form onSubmit={kirimCari} className="ml-auto hidden min-w-0 max-w-[300px] flex-1 lg:block">
+          <form onSubmit={kirimCari} className="ml-auto hidden min-w-0 max-w-[260px] flex-1 xl:block">
             <label className="relative flex items-center">
               <span className="sr-only">Cari obat</span>
-              <IconCari size={18} weight="bold" className="pointer-events-none absolute left-3 text-muted" />
+              <IconCari size={18} weight="bold" className="pointer-events-none absolute left-3.5 text-muted" />
               <input
                 type="search"
                 value={cari}
                 onChange={(e) => setCari(e.target.value)}
                 placeholder="Cari obat atau vitamin..."
-                className="h-11 w-full rounded-full border border-hairline surface-raised pl-10 pr-3 text-[16px] text-primary placeholder:text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
+                className="h-11 w-full rounded-full border border-hairline surface-raised pl-10 pr-3 text-[15.5px] text-primary placeholder:text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
               />
             </label>
           </form>
 
           {/* --- Aksi kanan --- */}
-          <div className="flex shrink-0 items-center gap-1 lg:ml-0 ml-auto">
-            <TombolIkon label={gelap ? 'Mode terang' : 'Mode gelap'} onClick={toggleTema}>
-              {gelap ? <IconMatahari size={21} weight="bold" /> : <IconBulan size={21} weight="bold" />}
+          <div className="ml-auto flex shrink-0 items-center gap-1 lg:ml-0">
+            <TombolIkon label={gelap ? 'Mode terang' : 'Mode gelap'} onClick={toggleTema} className="hidden sm:inline-flex">
+              {gelap ? <IconMatahari size={20} weight="bold" /> : <IconBulan size={20} weight="bold" />}
             </TombolIkon>
 
             {/* Keranjang: selalu terlihat, dengan lencana jumlah */}
@@ -177,7 +189,7 @@ export default function Header() {
               type="button"
               onClick={() => nav('/keranjang')}
               aria-label={jumlahKeranjang > 0 ? `Keranjang, ${jumlahKeranjang} barang` : 'Keranjang'}
-              className="relative flex h-11 w-11 items-center justify-center rounded-full text-secondary hover:surface-hover hover:text-primary"
+              className="relative flex h-11 w-11 items-center justify-center rounded-full text-secondary transition-colors hover:surface-hover hover:text-accent"
             >
               <IconKeranjang size={22} weight="bold" />
               {jumlahKeranjang > 0 && (
@@ -195,12 +207,12 @@ export default function Header() {
                   onClick={() => setMenuAkun((v) => !v)}
                   aria-expanded={menuAkun}
                   aria-haspopup="menu"
-                  className="flex h-11 items-center gap-2 rounded-full border border-hairline surface-raised pl-1.5 pr-3 text-[16px] font-semibold text-primary hover:surface-hover"
+                  className="flex h-11 items-center gap-2 rounded-full border border-hairline surface-raised pl-1.5 pr-3 text-[15.5px] font-semibold text-primary hover:surface-hover"
                 >
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-soft text-[14px] font-bold text-accent">
                     {(user.name || 'P').slice(0, 1).toUpperCase()}
                   </span>
-                  <span className="max-w-[120px] truncate">{(user.name || '').split(' ')[0]}</span>
+                  <span className="max-w-[110px] truncate">{(user.name || '').split(' ')[0]}</span>
                 </button>
 
                 {menuAkun && (
@@ -248,14 +260,24 @@ export default function Header() {
                 )}
               </div>
             ) : (
-              <button
-                type="button"
-                onClick={() => nav('/masuk')}
-                className="hidden h-11 items-center gap-2 rounded-full bg-accent px-4 text-[16px] font-semibold text-[var(--accent-contrast)] hover:brightness-95 lg:inline-flex"
-              >
-                <IconProfil size={18} weight="bold" />
-                Masuk
-              </button>
+              /* Tamu: nomor telepon + tombol pil emerald, seperti referensi. */
+              <div className="hidden items-center gap-2 lg:flex">
+                <a
+                  href={`tel:${telepon}`}
+                  className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-[15.5px] font-medium text-secondary transition-colors hover:text-accent"
+                >
+                  <IconTelepon size={18} weight="bold" />
+                  <span className="numeric hidden xl:inline">{pengaturan?.phone || '0812-1111-2222'}</span>
+                </a>
+                <button
+                  type="button"
+                  onClick={() => nav('/toko')}
+                  className="inline-flex min-h-11 items-center gap-2 rounded-full bg-accent px-5 text-[15.5px] font-semibold text-[var(--accent-contrast)] transition-[filter,transform] hover:brightness-110 active:translate-y-px"
+                >
+                  <IconToko size={18} weight="bold" />
+                  Belanja Obat
+                </button>
+              </div>
             )}
 
             {/* Tombol laci menu (ponsel & tablet) */}
@@ -264,13 +286,17 @@ export default function Header() {
               onClick={() => setLaci(true)}
               aria-label="Buka menu"
               aria-expanded={laci}
-              className="flex h-11 w-11 items-center justify-center rounded-full text-secondary hover:surface-hover hover:text-primary lg:hidden"
+              className="flex h-11 w-11 items-center justify-center rounded-full text-secondary transition-colors hover:surface-hover hover:text-accent lg:hidden"
             >
               <IconDaftarMenu />
             </button>
           </div>
         </div>
       </header>
+
+      {/* Penyeimbang tinggi header (fixed), supaya konten tidak
+          tertutup bilah navigasi. */}
+      <div className="h-20" aria-hidden="true" />
 
       {/* --- Laci menu ponsel --- */}
       {laci && (
@@ -292,7 +318,7 @@ export default function Header() {
             <form onSubmit={kirimCari} className="border-b border-hairline p-4">
               <label className="relative flex items-center">
                 <span className="sr-only">Cari obat</span>
-                <IconCari size={18} weight="bold" className="pointer-events-none absolute left-3 text-muted" />
+                <IconCari size={18} weight="bold" className="pointer-events-none absolute left-3.5 text-muted" />
                 <input
                   type="search"
                   value={cari}
@@ -396,7 +422,7 @@ export default function Header() {
 // spesifik dan tidak dipakai di tempat lain).
 function IconDaftarMenu() {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
       <path d="M4 7h16M4 12h16M4 17h16" />
     </svg>
   )
@@ -414,10 +440,10 @@ function Merek() {
     <span className="flex min-w-0 items-center gap-2.5">
       <LogoKlinik size={40} />
       <span className="min-w-0">
-        <span className="block truncate text-[17.5px] font-bold leading-tight tracking-tight text-primary">
+        <span className="block truncate text-[17px] font-bold leading-tight tracking-tight text-heading">
           {nama}
         </span>
-        <span className="block truncate text-[14px] leading-tight text-secondary">
+        <span className="block truncate text-[13.5px] leading-tight text-secondary">
           {tagline}
         </span>
       </span>

@@ -80,7 +80,7 @@ export function Kartu({ children, className = '', padat, ...props }) {
 export function JudulSeksi({ children, aksi, className = '' }) {
   return (
     <div className={`mb-3 flex items-baseline justify-between gap-3 ${className}`}>
-      <h2 className="text-[18.5px] font-semibold tracking-tight text-primary">{children}</h2>
+      <h2 className="text-[21px] font-semibold tracking-tight text-heading">{children}</h2>
       {aksi}
     </div>
   )
@@ -495,7 +495,7 @@ export function KepalaHalaman({ judul, pengantar, ilustrasi, aksi, className = '
     <section className={`permukaan-sambutan overflow-hidden rounded-[var(--radius-shell)] border border-hairline ${className}`}>
       <div className="flex items-center gap-3">
         <div className="min-w-0 flex-1 px-5 py-5">
-          <h1 className="text-[23px] font-bold leading-snug tracking-tight text-primary">{judul}</h1>
+          <h1 className="text-[25px] font-semibold leading-snug tracking-tight text-heading">{judul}</h1>
           {pengantar && (
             <p className="mt-2 max-w-[34ch] text-[16px] leading-relaxed text-secondary">{pengantar}</p>
           )}

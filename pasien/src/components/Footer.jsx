@@ -3,18 +3,17 @@ import { useStore } from '../lib/store'
 import {
   IconWhatsapp, IconTelepon, IconEmail, IconLokasi, IconJam,
   IconTentang, IconTanya, IconDokumen, IconPerisai, IconBintang,
-  IconBuku, IconLabel,
+  IconBuku, IconLabel, IconKartu,
 } from './Icons'
 import LogoKlinik from './LogoKlinik'
 
 // =============================================================
-// Footer website.
+// Footer website (gaya referensi Live Oak).
 //
-// Pada versi "app mobile" dulu, tautan informasi hanya menumpuk
-// di bawah halaman. Sebagai WEBSITE, tautan-tautan itu dipindah
-// ke footer tiga kolom yang rapi - pola yang familiar di web -
-// sehingga halaman utama tetap ringkas dan navigasi tetap
-// lengkap di semua ukuran layar.
+// Tautan informasi dikumpulkan di footer tiga kolom supaya halaman
+// tetap ringkas dan navigasi tetap lengkap di semua ukuran layar.
+// Bagian paling bawah menampilkan lambang + nama klinik huruf
+// besar, seperti blok merek pada referensi.
 // =============================================================
 
 const KOLOM_LAYANAN = [
@@ -45,26 +44,26 @@ export default function Footer() {
   const tagline = pengaturan?.site_tagline || 'Obat lengkap, cepat & terpercaya'
   const telepon = pengaturan?.phone || '0812-1111-2222'
   const whatsapp = (pengaturan?.whatsapp || '6281211112222').replace(/[^0-9]/g, '')
-  const email = pengaturan?.email || 'info@apotek.test'
+  const email = pengaturan?.email || 'info@klinikpremysis.test'
   const alamat = pengaturan?.address || 'Jl. Kesehatan Raya No. 45, Depok, Jawa Barat'
   const jam = pengaturan?.opening_hours || 'Senin - Sabtu: 08.00 - 21.00 WIB'
 
   return (
-    <footer className="mt-14 border-t border-hairline surface-sidebar">
-      <div className="wadah py-10">
+    <footer className="mt-16 border-t border-hairline surface-sidebar">
+      <div className="wadah py-12">
         <div className="grid gap-9 sm:grid-cols-2 lg:grid-cols-4">
           {/* --- Kolom 1: identitas + kontak --- */}
           <div>
             <span className="flex items-center gap-2.5">
-              <LogoKlinik size={40} />
+              <LogoKlinik size={44} />
               <span className="min-w-0">
-                <span className="block text-[18px] font-bold leading-tight tracking-tight text-primary">
+                <span className="block text-[18px] font-semibold leading-tight tracking-tight text-heading">
                   {nama}
                 </span>
-                <span className="block text-[14.5px] leading-tight text-secondary">{tagline}</span>
+                <span className="block text-[14px] leading-tight text-secondary">{tagline}</span>
               </span>
             </span>
-            <p className="mt-3.5 text-[15.5px] leading-relaxed text-secondary">
+            <p className="mt-4 text-[15.5px] leading-relaxed text-secondary">
               Obat asli, vitamin, dan alat kesehatan - diantar cepat sampai rumah Anda.
             </p>
 
@@ -90,14 +89,14 @@ export default function Footer() {
 
           {/* --- Kolom 2: layanan --- */}
           <div>
-            <p className="text-[16px] font-semibold text-primary">Layanan</p>
+            <p className="text-[16px] font-semibold text-heading">Layanan</p>
             <ul className="mt-3.5 space-y-2.5">
               {KOLOM_LAYANAN.map(({ to, label }) => (
                 <li key={to}>
                   <button
                     type="button"
                     onClick={() => nav(to)}
-                    className="text-left text-[15.5px] text-secondary hover:text-accent"
+                    className="text-left text-[15.5px] text-secondary transition-colors hover:text-accent"
                   >
                     {label}
                   </button>
@@ -108,14 +107,14 @@ export default function Footer() {
 
           {/* --- Kolom 3: informasi --- */}
           <div>
-            <p className="text-[16px] font-semibold text-primary">Informasi</p>
+            <p className="text-[16px] font-semibold text-heading">Informasi</p>
             <ul className="mt-3.5 space-y-2.5">
               {KOLOM_INFO.map(({ to, label }) => (
                 <li key={to}>
                   <button
                     type="button"
                     onClick={() => nav(to)}
-                    className="text-left text-[15.5px] text-secondary hover:text-accent"
+                    className="text-left text-[15.5px] text-secondary transition-colors hover:text-accent"
                   >
                     {label}
                   </button>
@@ -126,7 +125,7 @@ export default function Footer() {
 
           {/* --- Kolom 4: bantuan --- */}
           <div>
-            <p className="text-[16px] font-semibold text-primary">Butuh Bantuan?</p>
+            <p className="text-[16px] font-semibold text-heading">Butuh Bantuan?</p>
             <p className="mt-3 text-[15.5px] leading-relaxed text-secondary">
               Apoteker kami siap membantu memilih obat yang tepat untuk Anda.
             </p>
@@ -134,7 +133,7 @@ export default function Footer() {
               href={`https://wa.me/${whatsapp}?text=Halo%2C%20saya%20ingin%20bertanya%20soal%20obat.`}
               target="_blank"
               rel="noreferrer"
-              className="mt-4 inline-flex min-h-12 w-full items-center justify-center gap-2.5 rounded-[var(--radius-control)] bg-[var(--color-signal-green-solid)] px-4 text-[16.5px] font-semibold text-white hover:brightness-95"
+              className="mt-4 inline-flex min-h-12 w-full items-center justify-center gap-2.5 rounded-full bg-accent px-4 text-[16px] font-semibold text-[var(--accent-contrast)] transition-[filter,transform] hover:brightness-110 active:translate-y-px"
             >
               <IconWhatsapp size={20} weight="bold" />
               Chat WhatsApp
@@ -145,7 +144,7 @@ export default function Footer() {
                   <button
                     type="button"
                     onClick={() => nav(to)}
-                    className="text-left text-[15px] text-muted hover:text-accent"
+                    className="text-left text-[15px] text-muted transition-colors hover:text-accent"
                   >
                     {label}
                   </button>
@@ -155,16 +154,26 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* --- Baris bawah --- */}
-        <div className="mt-9 flex flex-col gap-3 border-t border-hairline pt-6 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-[15px] leading-relaxed text-muted">
-            © {new Date().getFullYear()} {nama}. Data pada aplikasi ini adalah contoh untuk
-            pengembangan.
+        {/* --- Baris merek + hak cipta --- */}
+        <div className="mt-10 flex flex-col items-center gap-3 border-t border-hairline pt-8 text-center">
+          <LogoKlinik size={38} />
+          <p className="text-[13px] font-semibold uppercase tracking-[0.18em] text-accent">
+            {nama}
           </p>
-          <p className="flex items-center gap-2 text-[15px] text-muted">
-            <IconLabel size={16} className="text-accent" />
-            Pembayaran aman lewat Midtrans
+          <p className="max-w-[52ch] text-[15px] leading-relaxed text-muted">
+            Klinik dan apotek yang dikelola secara lokal. Obat asli &amp; terdaftar BPOM, dikemas
+            oleh apoteker berwenang.
           </p>
+          <div className="mt-1 flex flex-col items-center gap-2 sm:flex-row sm:gap-5">
+            <p className="text-[15px] text-muted">
+              © {new Date().getFullYear()} {nama}. Data pada aplikasi ini adalah contoh untuk
+              pengembangan.
+            </p>
+            <p className="flex items-center gap-2 text-[15px] text-muted">
+              <IconKartu size={16} className="text-accent" />
+              Pembayaran aman lewat Midtrans
+            </p>
+          </div>
         </div>
       </div>
     </footer>

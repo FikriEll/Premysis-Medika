@@ -1,123 +1,138 @@
 // =============================================================
-// Ikon aplikasi pasien - SATU keluarga ikon (Phosphor).
-// Aturan skill design-taste-frontend: dilarang SVG gambar tangan,
-// satu pustaka, satu ketebalan garis.
+// Ikon aplikasi pasien - SATU keluarga ikon (Lucide).
+//
+// Referensi desain (Live Oak Pharmacy) memakai Lucide, jadi seluruh
+// aplikasi memakai Lucide juga: satu pustaka, satu ketebalan garis.
+//
+// Nama ekspor (IconXxx) sengaja DIPERTAHANKAN sama seperti versi
+// Phosphor sebelumnya, supaya halaman-halaman lain tidak perlu
+// diubah. Yang berubah hanya pustaka di baliknya.
+//
+// Prop `weight` ikut dipertahankan demi kompatibilitas:
+//   'regular' -> garis 2   (bawaan Lucide)
+//   'bold'    -> garis 2.4 (penekanan)
+//   'fill'    -> bentuk terisi
 // =============================================================
 import {
   House,
   CalendarCheck,
-  FirstAid,
-  Prescription,
-  Storefront,
-  ShoppingCartSimple,
+  ClipboardList,
+  Store,
+  ShoppingCart,
   Receipt,
   User,
   Bell,
-  MagnifyingGlass,
+  Search,
   Plus,
   Minus,
-  Trash,
+  Trash2,
   X,
   Check,
-  CheckCircle,
-  Warning,
-  SignOut,
-  CaretRight,
-  CaretLeft,
+  CircleCheck,
+  TriangleAlert,
+  LogOut,
+  ChevronRight,
+  ChevronLeft,
   ArrowLeft,
   ArrowRight,
   Sun,
-  MoonStars,
-  WhatsappLogo,
+  Moon,
+  MessageCircle,
   Baby,
   Syringe,
   Stethoscope,
-  ClipboardText,
-  Heartbeat,
+  HeartPulse,
   Clock,
   MapPin,
   Crosshair,
   Truck,
   Package,
   Pill,
-  Sparkle,
+  Sparkles,
   List,
-  PencilSimple,
+  Pencil,
   Camera,
   Phone,
-  EnvelopeSimple,
+  Mail,
   Lock,
   Eye,
-  EyeSlash,
+  EyeOff,
   Info,
-  CalendarBlank,
+  Calendar,
   Wallet,
-  ArrowCounterClockwise,
-  UserCircle,
-  SquaresFour,
-  Flask,
-  Bandaids,
-  SprayBottle,
+  RotateCcw,
+  CircleUser,
+  LayoutGrid,
+  FlaskConical,
+  Bandage,
+  SprayCan,
   ShoppingBag,
   Heart,
-  CalendarDots,
-  NotePencil,
-  Question,
-  PaperPlaneTilt,
-  ArrowClockwise,
-  ChatCircle,
-  MapTrifold,
-  DeviceMobile,
-  HandWaving,
+  CalendarDays,
+  NotebookPen,
+  CircleQuestionMark,
+  Send,
+  RefreshCw,
+  Map,
+  Smartphone,
+  Hand,
   Star,
   ShieldCheck,
   FileText,
   BookOpen,
   Tag,
-  Gear,
+  Settings,
   CreditCard,
-  SealCheck,
-  ChatsCircle,
-  PlusCircle,
-} from '@phosphor-icons/react'
+  BadgeCheck,
+  MessagesSquare,
+  CirclePlus,
+} from 'lucide-react'
 
-const WEIGHT = 'regular'
+const STROKE = { regular: 2, bold: 2.4 }
 
 function make(Icon) {
-  const Wrapped = ({ size = 22, className = '', weight = WEIGHT, ...rest }) => (
-    <Icon size={size} weight={weight} className={className} {...rest} />
+  const Wrapped = ({ size = 22, className = '', weight = 'regular', ...rest }) => (
+    <Icon
+      size={size}
+      className={className}
+      strokeWidth={STROKE[weight] ?? 2}
+      fill={weight === 'fill' ? 'currentColor' : 'none'}
+      aria-hidden="true"
+      focusable="false"
+      {...rest}
+    />
   )
-  Wrapped.displayName = `Icon(${Icon.displayName || 'Phosphor'})`
+  Wrapped.displayName = `Icon(${Icon.displayName || 'Lucide'})`
   return Wrapped
 }
 
 // --- Navigasi utama (bottom nav) - PRD §17.1 ---
 export const IconBeranda = make(House)
 export const IconAppointment = make(CalendarCheck)
-export const IconResep = make(Prescription)
-export const IconToko = make(Storefront)
-export const IconKeranjang = make(ShoppingCartSimple)
+export const IconResep = make(ClipboardList)
+export const IconToko = make(Store)
+export const IconKeranjang = make(ShoppingCart)
 export const IconPesanan = make(Receipt)
 export const IconProfil = make(User)
 export const IconNotifikasi = make(Bell)
 
 // --- Aksi ---
-export const IconCari = make(MagnifyingGlass)
+export const IconCari = make(Search)
 export const IconTambah = make(Plus)
 export const IconKurang = make(Minus)
-export const IconHapus = make(Trash)
+export const IconHapus = make(Trash2)
 export const IconTutup = make(X)
 export const IconCentang = make(Check)
-export const IconCentangBulat = make(CheckCircle)
-export const IconPeringatan = make(Warning)
-export const IconKeluar = make(SignOut)
-export const IconPanahKanan = make(CaretRight)
-export const IconPanahKiri = make(CaretLeft)
+export const IconCentangBulat = make(CircleCheck)
+export const IconPeringatan = make(TriangleAlert)
+export const IconKeluar = make(LogOut)
+export const IconPanahKanan = make(ChevronRight)
+export const IconPanahKiri = make(ChevronLeft)
 export const IconKembali = make(ArrowLeft)
 export const IconLanjut = make(ArrowRight)
 export const IconMata = make(Eye)
-export const IconMataTutup = make(EyeSlash)
-export const IconEdit = make(PencilSimple)
+export const IconMataTutup = make(EyeOff)
+export const IconEdit = make(Pencil)
 export const IconKamera = make(Camera)
 export const IconDaftar = make(List)
 export const IconInfo = make(Info)
@@ -126,9 +141,9 @@ export const IconInfo = make(Info)
 export const IconBayi = make(Baby)
 export const IconVaksin = make(Syringe)
 export const IconPemeriksaan = make(Stethoscope)
-export const IconRekam = make(ClipboardText)
-export const IconPulse = make(Heartbeat)
-export const IconObat = make(FirstAid)
+export const IconRekam = make(ClipboardList)
+export const IconPulse = make(HeartPulse)
+export const IconObat = make(Pill)
 export const IconPil = make(Pill)
 export const IconProduk = make(Package)
 export const IconJam = make(Clock)
@@ -136,38 +151,40 @@ export const IconLokasi = make(MapPin)
 export const IconLokasiSaya = make(Crosshair)
 export const IconKirim = make(Truck)
 export const IconDompet = make(Wallet)
-export const IconTanggal = make(CalendarBlank)
+export const IconTanggal = make(Calendar)
 export const IconTelepon = make(Phone)
-export const IconEmail = make(EnvelopeSimple)
+export const IconEmail = make(Mail)
 export const IconKunci = make(Lock)
-export const IconWhatsapp = make(WhatsappLogo)
-export const IconSparkle = make(Sparkle)
+// Lucide tidak menyediakan ikon merek; WhatsApp diwakili ikon
+// percakapan yang maknanya sama (tombolnya selalu berlabel teks).
+export const IconWhatsapp = make(MessageCircle)
+export const IconSparkle = make(Sparkles)
 
 // --- Tema ---
 export const IconMatahari = make(Sun)
-export const IconBulan = make(MoonStars)
+export const IconBulan = make(Moon)
 
 // --- Tambahan untuk design system brief §25 ---
-export const IconUlang = make(ArrowCounterClockwise)
-export const IconSegarkan = make(ArrowClockwise)
-export const IconPasien = make(UserCircle)
-export const IconLayanan = make(SquaresFour)
-export const IconLab = make(Flask)
-export const IconPerawatan = make(Bandaids)
-export const IconPerawatanKulit = make(SprayBottle)
+export const IconUlang = make(RotateCcw)
+export const IconSegarkan = make(RefreshCw)
+export const IconPasien = make(CircleUser)
+export const IconLayanan = make(LayoutGrid)
+export const IconLab = make(FlaskConical)
+export const IconPerawatan = make(Bandage)
+export const IconPerawatanKulit = make(SprayCan)
 export const IconBelanja = make(ShoppingBag)
 export const IconHati = make(Heart)
-export const IconKalender = make(CalendarDots)
-export const IconCatatan = make(NotePencil)
-export const IconTanya = make(Question)
-export const IconKirimPesan = make(PaperPlaneTilt)
-export const IconChat = make(ChatCircle)
-export const IconPeta = make(MapTrifold)
-export const IconPonsel = make(DeviceMobile)
+export const IconKalender = make(CalendarDays)
+export const IconCatatan = make(NotebookPen)
+export const IconTanya = make(CircleQuestionMark)
+export const IconKirimPesan = make(Send)
+export const IconChat = make(MessageCircle)
+export const IconPeta = make(Map)
+export const IconPonsel = make(Smartphone)
 // Lambaian tangan menggantikan emoji 👋 (brief §7 memakai emoji,
-// tetapi aturan skill melarang emoji dekoratif; ikon Phosphor
+// tetapi aturan skill melarang emoji dekoratif; ikon Lucide
 // memberi makna yang sama tanpa melanggar aturan).
-export const IconSapa = make(HandWaving)
+export const IconSapa = make(Hand)
 
 // --- Tambahan untuk halaman konten & akun ---
 export const IconBintang = make(Star)
@@ -175,9 +192,13 @@ export const IconPerisai = make(ShieldCheck)
 export const IconDokumen = make(FileText)
 export const IconBuku = make(BookOpen)
 export const IconLabel = make(Tag)
-export const IconGear = make(Gear)
+export const IconGear = make(Settings)
 export const IconKartu = make(CreditCard)
-export const IconTerverifikasi = make(SealCheck)
-export const IconDiskusi = make(ChatsCircle)
-export const IconTambahBulat = make(PlusCircle)
+export const IconTerverifikasi = make(BadgeCheck)
+export const IconDiskusi = make(MessagesSquare)
+export const IconTambahBulat = make(CirclePlus)
 export const IconTentang = make(Info)
+
+// --- Ikon tambahan untuk tampilan bergaya Live Oak ---
+export const IconPanahMiring = make(ArrowRight)
+export const IconPanahTurun = make(ChevronRight)

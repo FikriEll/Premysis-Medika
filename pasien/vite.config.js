@@ -29,7 +29,7 @@ export default defineConfig({
         // pustaka (React + router + ikon) setiap kali.
         manualChunks: {
           react: ['react', 'react-dom', 'react-router-dom'],
-          ikon: ['@phosphor-icons/react'],
+          ikon: ['lucide-react'],
         },
       },
     },

@@ -28,7 +28,7 @@ export default function LayoutPublik() {
   const nav = useNavigate()
 
   return (
-    <div className="flex min-h-dvh flex-col surface-canvas">
+    <div className="publik flex min-h-dvh flex-col surface-canvas">
       <a href="#konten" className="skip-link">
         Lompat ke konten
       </a>
