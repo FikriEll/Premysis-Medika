@@ -177,6 +177,11 @@ export const logAktivitas = [
 // =============================================================
 // Helper untuk tampilan
 // =============================================================
+// Tanggal hari ini (YYYY-MM-DD). Dulu nilai ini di-hardcode ke tanggal
+// demo 2026-04-20, sehingga dashboard yang membaca data nyata dari API
+// menampilkan nol ("tidak ada jadwal hari ini") setiap hari setelahnya.
+export const hariIni = () => new Date().toISOString().slice(0, 10)
+
 export const fmtRupiah = (n) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n || 0)
 
@@ -217,17 +222,17 @@ export const cariBayi = (id) => sumber('bayi', bayi).find((b) => b.id === id) ||
 
 // Statistik dashboard - §A-01
 export const dashboardStats = () => {
-  const hariIni = '2026-04-20'
+  const tgl = hariIni()
   const ps = sumber('pasien', pasien)
   const ap = sumber('appointment', appointment)
   const pm = sumber('pemeriksaan', pemeriksaan)
   const pn = sumber('pesanan', pesanan)
   const pd = sumber('produk', produk)
   return {
-    pasienBaru: ps.filter((p) => p.tanggal_registrasi === hariIni).length,
+    pasienBaru: ps.filter((p) => p.tanggal_registrasi === tgl).length,
     totalPasien: ps.length,
-    appointmentHariIni: ap.filter((a) => a.tanggal === hariIni).length,
-    pemeriksaanHariIni: pm.filter((p) => p.tanggal === hariIni).length,
+    appointmentHariIni: ap.filter((a) => a.tanggal === tgl).length,
+    pemeriksaanHariIni: pm.filter((p) => p.tanggal === tgl).length,
     pesananBaru: pn.filter((p) => p.status === 'Menunggu Pembayaran').length,
     stokMenipis: pd.filter((p) => p.stok <= p.stok_minimum).length,
   }

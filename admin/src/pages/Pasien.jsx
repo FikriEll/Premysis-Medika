@@ -4,7 +4,7 @@ import { Panel, Button, Field, Input, Select, SearchInput, EmptyState , GalatBar
 import DataTable from '../components/DataTable'
 import Modal, { ConfirmDialog } from '../components/Modal'
 import StatusBadge from '../components/StatusBadge'
-import { fmtTanggal } from '../data/mockData'
+import { fmtTanggal, hariIni } from '../data/mockData'
 import { useData } from '../context/DataContext'
 import { IconPlus, IconEdit, IconTrash, IconPasien, IconEye } from '../components/Icons'
 
@@ -53,7 +53,7 @@ export default function Pasien() {
     setGalat(null)
     try {
       if (modal.mode === 'add') {
-        await tambah('pasien', { ...form, tanggal_registrasi: '2026-04-20', status_aktif: true })
+        await tambah('pasien', { ...form, tanggal_registrasi: hariIni(), status_aktif: true })
       } else {
         await ubah('pasien', modal.data.id, form)
       }

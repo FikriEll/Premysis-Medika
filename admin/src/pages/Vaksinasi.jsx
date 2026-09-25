@@ -4,7 +4,7 @@ import { Panel, Button, Field, Input, Select, SearchInput, EmptyState , GalatBar
 import DataTable from '../components/DataTable'
 import Modal from '../components/Modal'
 import StatusBadge from '../components/StatusBadge'
-import { namaBayi, namaPasien, fmtTanggal } from '../data/mockData'
+import { namaBayi, namaPasien, fmtTanggal, hariIni } from '../data/mockData'
 import { useData } from '../context/DataContext'
 import { IconPlus, IconVaksin, IconCheck, IconEye } from '../components/Icons'
 
@@ -56,7 +56,7 @@ export default function Vaksinasi() {
   const beriVaksin = async (j) => {
     setGalat(null)
     try {
-      await ubah('jadwalVaksin', j.id, { tanggal_diberikan: '2026-04-20', status: 'Selesai' })
+      await ubah('jadwalVaksin', j.id, { tanggal_diberikan: hariIni(), status: 'Selesai' })
     } catch (e) {
       setGalat(e.message)
     }

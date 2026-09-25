@@ -3,7 +3,7 @@ import PageHeader from '../components/PageHeader'
 import { Panel, Button, Field, Input, Select, Textarea, SearchInput, EmptyState , GalatBar } from '../components/ui'
 import DataTable from '../components/DataTable'
 import Modal from '../components/Modal'
-import { namaPasien, namaProduk, fmtTanggal } from '../data/mockData'
+import { namaPasien, namaProduk, fmtTanggal, hariIni } from '../data/mockData'
 import { useData } from '../context/DataContext'
 import { IconPlus, IconPemeriksaan, IconEye, IconResep } from '../components/Icons'
 
@@ -49,7 +49,7 @@ export default function Pemeriksaan() {
         id_pasien: Number(form.id_pasien),
         id_appointment: null,
         id_bidan: 1,
-        tanggal: '2026-04-20',
+        tanggal: hariIni(),
         resep: resepDraft,
       })
       setModal(null)

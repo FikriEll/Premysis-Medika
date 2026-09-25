@@ -4,7 +4,7 @@ import { Panel, Button, Field, Input, Select, Textarea, SearchInput, EmptyState 
 import DataTable from '../components/DataTable'
 import Modal from '../components/Modal'
 import StatusBadge from '../components/StatusBadge'
-import { namaPasien, fmtTanggal } from '../data/mockData'
+import { namaPasien, fmtTanggal, hariIni } from '../data/mockData'
 import { useData } from '../context/DataContext'
 import { IconPlus, IconResep, IconEye, IconTrash } from '../components/Icons'
 
@@ -15,7 +15,7 @@ export default function Resep() {
   const [galat, setGalat] = useState(null)
   const [q, setQ] = useState('')
   const [modal, setModal] = useState(null)
-  const [form, setForm] = useState({ id_pasien: '', tanggal: '2026-04-20', catatan: '' })
+  const [form, setForm] = useState({ id_pasien: '', tanggal: hariIni(), catatan: '' })
   const [detail, setDetail] = useState([])
 
   const filtered = useMemo(
@@ -24,7 +24,7 @@ export default function Resep() {
   )
 
   const openAdd = () => {
-    setForm({ id_pasien: '', tanggal: '2026-04-20', catatan: '' })
+    setForm({ id_pasien: '', tanggal: hariIni(), catatan: '' })
     setDetail([{ id_produk: '', dosis: '', jumlah: 1, aturan_pakai: '' }])
     setModal({ mode: 'add' })
   }

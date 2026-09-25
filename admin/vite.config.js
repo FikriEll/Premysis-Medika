@@ -8,11 +8,12 @@ export default defineConfig({
   server: {
     port: 5173,
     open: false,
-    // Semua /api diteruskan ke server bersama (port 4000) supaya data
-    // yang dilihat admin identik dengan yang dilihat pasien - PRD N-05.
+    // Semua /api diteruskan ke SERVER APOTEK (Laravel, port 8000) -
+    // server yang sama dengan aplikasi pasien, supaya data yang dilihat
+    // admin identik dengan yang dilihat pasien - PRD N-05.
     proxy: {
       '/api': {
-        target: process.env.API_URL || 'http://127.0.0.1:4000',
+        target: process.env.API_URL || 'http://127.0.0.1:8000',
         changeOrigin: true,
       },
     },

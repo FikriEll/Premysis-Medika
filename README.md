@@ -7,32 +7,36 @@ Repositori ini berisi **tiga bagian** yang berjalan di atas **satu sumber data**
 |---|---|---|---|
 | Dashboard Admin | `admin/` | http://localhost:5173 | Modul operasional klinik + e-commerce/ERP (PRD §6.2, §22) |
 | Aplikasi Pasien | `pasien/` | http://localhost:5174 | Fitur pasien F-01..F-11 + alur e-commerce (PRD §6.1) |
-| API Bersama | `server/` + `shared/` | http://127.0.0.1:4000 | REST API + aturan bisnis BR-02..BR-10 |
+| API Bersama | backend **Laravel** (`apotek`) | http://127.0.0.1:8000 | REST API + aturan bisnis BR-02..BR-10 |
 
 > Dokumen acuan: `docs/PRD.md` (PRD v1.1).
+> Cara backend Laravel menyajikan **dua** front-end: `docs/INTEGRASI_BACKEND.md`.
 
-## Mengapa ada server API
+## Mengapa ada satu server API
 
 Dashboard admin dan aplikasi pasien berjalan di **port berbeda**, sehingga berbeda
 *origin* dan **tidak bisa berbagi `localStorage`**. Supaya keduanya benar-benar melihat
-data yang sama (PRD N-05: satu sumber data), keduanya membaca dan menulis ke **satu REST
-API** (`server/index.js`), dengan lapisan entitas bersama di `shared/`.
+data yang sama (PRD N-05: satu sumber data), keduanya membaca dan menulis ke **satu
+backend Laravel** (repositori `apotek`), dengan dua permukaan API:
+
+- `/api` — kontrak e-commerce, dipakai aplikasi pasien
+- `/api/admin` — kontrak klinik, dipakai dashboard admin
 
 ```
         ┌──────────────────┐        ┌──────────────────┐
         │ Dashboard Admin  │        │  Aplikasi Pasien │
         │   :5173          │        │    :5174         │
         └────────┬─────────┘        └────────┬─────────┘
-                 │  /api (proxy Vite)        │  /api (proxy Vite)
+                 │  /api/admin (proxy Vite)  │  /api (proxy Vite)
                  └───────────┬───────────────┘
                              ▼
-                   ┌──────────────────┐
-                   │  REST API :4000  │  ← satu basis data
-                   │  server/index.js │
-                   └──────────────────┘
-                             │
-                     shared/ (entitas + aturan)
+                 ┌───────────────────────────┐
+                 │  Laravel apotek  :8000    │  ← satu basis data
+                 └───────────────────────────┘
 ```
+
+Rincian pemetaan domain apotek ➜ kontrak dashboard (nama kolom, status, peran, aturan
+bisnis) ada di **`docs/INTEGRASI_BACKEND.md`**.
 
 Aturan bisnis ditegakkan **di server**, bukan di UI, sehingga tidak bisa dilewati:
 
@@ -117,33 +121,33 @@ sekaligus**, supaya angka di layar selalu sama dengan yang ditegakkan saat check
 
 ## Menjalankan
 
+Backend adalah repositori Laravel `apotek`. Jalankan lebih dulu:
+
 ```bash
-npm install        # memasang dependensi root
-npm run install:all  # memasang dependensi admin/ dan pasien/
-npm run dev        # menjalankan API + dashboard + app pasien sekaligus
+cd apotek
+php artisan serve --host=127.0.0.1 --port=8000   # API :8000
+```
+
+Lalu jalankan kedua front-end (dari repositori ini):
+
+```bash
+npm --prefix admin install
+npm --prefix pasien install
+npm --prefix admin run dev     # dashboard :5173  (proxy /api → :8000)
+npm --prefix pasien run dev    # app pasien :5174 (proxy /api → :8000)
 ```
 
 Kemudian buka:
 
 - Dashboard admin : http://localhost:5173
 - Aplikasi pasien : http://localhost:5174
-- API bersama    : http://127.0.0.1:4000/api/state
-
-`npm run dev` menyalakan API lebih dulu, menunggu sampai merespons, baru menyalakan
-kedua app. Tekan **Ctrl+C** sekali untuk menghentikan ketiganya.
-
-### Menjalankan terpisah
-
-```bash
-npm run server       # hanya API      (:4000)
-npm run dev:admin    # hanya dashboard (:5173)
-npm run dev:pasien   # hanya app pasien (:5174)
-```
+- API bersama    : http://127.0.0.1:8000/api/admin/state
 
 ### Build produksi
 
 ```bash
-npm run build:all    # build dashboard + app pasien
+npm --prefix admin run build
+npm --prefix pasien run build
 ```
 
 ## Akun demo
@@ -160,13 +164,14 @@ Semua akun memakai password `demo1234`.
 > Peran "Asisten 1" dan "Asisten 2" digabung menjadi satu peran **Asisten Bidan**
 > dengan hak akses gabungan.
 
-**Aplikasi pasien** (klik kartu akun demo untuk mengisi otomatis):
+**Aplikasi pasien** (klik kartu akun demo untuk mengisi otomatis). Password: `password`
+(akun berasal dari `DatabaseSeeder` repositori `apotek`):
 
-| Pasien | Email | Data contoh |
+| Pasien | Identitas | Catatan |
 |---|---|---|
-| Siti Nurhaliza | `siti@pasien.id` | Appointment & resep |
-| Dewi Lestari | `dewi@pasien.id` | Data bayi (jadwal vaksin) |
-| Maya Putri | `maya@pasien.id` | Riwayat pemeriksaan |
+| Budi Santoso | `budi@apotek.test` | Pelanggan dengan pesanan |
+| Siti Aminah | `siti@apotek.test` | Pelanggan dengan alamat |
+| Pelanggan 3 | `08130324679` | Login pakai nomor HP |
 
 ## Coba alur dua arah
 
@@ -184,26 +189,26 @@ Semua akun memakai password `demo1234`.
 
 ```
 .
-├── admin/             Dashboard admin (React + Vite + Tailwind v4)
-├── pasien/            Aplikasi pasien (React + Vite + Tailwind v4)
-├── server/
-│   ├── index.js       REST API + penegakan aturan bisnis BR-02..BR-10
-│   └── data/          Basis data dalam memori (dari shared/seed.js)
-├── shared/
-│   ├── seed.js        Entitas awal kedua aplikasi
-│   ├── format.js      Format tanggal/uang + konstanta waktu demo
-│   ├── pengiriman.js  Aturan jarak, zona, kurir, ongkir, batas radius
-│   ├── pembayaran.js  Rekening klinik, label status & instruksi pembayaran
-├── scripts/dev.mjs    Orkestrator `npm run dev`
-├── docs/PRD.md        Product Requirements Document (v1.1)
-├── .agents/           Skill AI untuk desain UI (opsional, tidak dipakai build)
-└── package.json       Skrip orkestrasi
+├── admin/                 Dashboard admin (React + Vite + Tailwind v4)
+├── pasien/                Aplikasi pasien (React + Vite + Tailwind v4)
+├── server/                Server Node demo lama (tidak dipakai lagi oleh dashboard)
+├── shared/                Entitas & aturan bersama server Node lama
+├── scripts/dev.mjs        Orkestrator `npm run dev`
+├── docs/
+│   ├── PRD.md             Product Requirements Document (v1.1)
+│   └── INTEGRASI_BACKEND.md  Cara backend Laravel melayani 2 front-end
+└── package.json           Skrip orkestrasi
 ```
+
+Backend sebenarnya berada di **repositori terpisah**: `apotek` (Laravel).
 
 ## Catatan
 
-- Basis data berada **dalam memori**: restart API mengembalikan data ke kondisi awal
-  (`shared/seed.js`).
-- Autentikasi masih **simulasi**; otorisasi RBAC di dashboard tetap berlaku.
+- **Satu basis data.** Dashboard admin dan aplikasi pasien membaca/menulis ke backend
+  Laravel yang sama, sehingga data selalu sinkron (PRD N-05).
+- **Login dashboard diverifikasi server** (`POST /api/admin/auth/login-admin`); akun
+  nonaktif ditolak. Otorisasi RBAC di dashboard tetap berlaku.
+- `server/index.js` (Node, in-memory) adalah server demo lama dan **sudah tidak dipakai**
+  oleh dashboard; ia ditinggalkan sebagai rujukan dan dapat dihapus.
 - Aplikasi pasien memakai pola **mobile-first** (navigasi bawah + lembar aksi);
   dashboard admin memakai pola desktop.

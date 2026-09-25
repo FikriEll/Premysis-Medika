@@ -3,30 +3,27 @@
 Frontend **Dashboard Admin (Web)** untuk sistem informasi klinik **Premysis Medika**.
 Dibangun dengan **React + Vite + Tailwind CSS v4**.
 
-Data **tidak lagi mock lokal**: dashboard membaca dan menulis ke **REST API bersama**
-(`../server/index.js`) lewat proxy `/api`, sehingga pesanan, appointment, dan data
+Data **tidak lagi mock lokal**: dashboard membaca dan menulis ke **backend Laravel**
+(repositori `apotek`) lewat prefiks `/api/admin`, sehingga pesanan, appointment, dan data
 lain yang dibuat pasien di aplikasi pasien langsung terlihat di sini - PRD N-05.
 
-> Dokumen acuan: `../docs/PRD.md` (PRD v1.1).
+> Dokumen acuan: `../docs/PRD.md` (PRD v1.1) dan `../docs/INTEGRASI_BACKEND.md`.
 > Cakupan: 11 modul Dashboard Admin (PRD §6.2 & §22).
 
 ## Menjalankan
 
-Cara termudah, dari **folder induk** (menjalankan API + kedua app sekaligus):
+Backend Laravel harus berjalan lebih dulu:
 
 ```bash
-npm install          # sekali saja
-npm run dev
+cd ../apotek && php artisan serve --host=127.0.0.1 --port=8000
 ```
 
-Buka http://localhost:5173 (dashboard) dan http://localhost:5174 (app pasien).
-
-Menjalankan dashboard sendirian:
+Lalu dashboard:
 
 ```bash
 cd admin
 npm install
-npm run dev          # perlu server API berjalan: npm run server (dari folder induk)
+npm run dev          # http://localhost:5173, proxy /api → :8000
 ```
 
 ### Akun demo (klik pada halaman login untuk mengisi otomatis)
@@ -36,7 +33,8 @@ npm run dev          # perlu server API berjalan: npm run server (dari folder in
 | Bidan (Owner) | `siska@premysismedika.id` | `demo1234` |
 | Asisten Bidan | `rina@premysismedika.id` | `demo1234` |
 
-Autentikasi dashboard masih simulasi di sisi klien; otorisasi (RBAC) tetap berlaku.
+Login **diverifikasi server** (`POST /api/admin/auth/login-admin`); akun nonaktif ditolak
+dengan pesan "Akun tidak aktif. Hubungi Bidan." Otorisasi RBAC di sisi klien tetap berlaku.
 
 > **Catatan peran:** Asisten 1 (front office) dan Asisten 2 (e-commerce/stok) digabung
 > menjadi **satu peran "Asisten Bidan"** dengan hak akses gabungan
@@ -71,10 +69,13 @@ admin/
     ├── main.jsx                 # entry + router + AuthProvider
     ├── App.jsx                  # definisi route & guard RBAC
     ├── index.css                # Tailwind + tema brand
+    ├── lib/
+    │   └── api.js               # klien REST API (/api/admin)
     ├── context/
-    │   └── AuthContext.jsx      # login mock + matriks hak akses (§5.1)
+    │   ├── AuthContext.jsx      # login server + matriks hak akses (§5.1)
+    │   └── DataContext.jsx      # snapshot data dari /api/admin/state
     ├── data/
-    │   └── mockData.js          # SEMUA data contoh (ganti dgn API nanti)
+    │   └── mockData.js          # fallback tampilan + helper format
     ├── components/
     │   ├── AppLayout.jsx        # sidebar + topbar + outlet
     │   ├── Sidebar.jsx          # menu (difilter sesuai RBAC)

@@ -1,7 +1,14 @@
-// Klien REST API untuk dashboard admin.
-// Sama seperti yang dipakai aplikasi pasien, supaya kedua aplikasi
-// membaca satu sumber data (PRD §16, N-05).
-const BASE = '/api'
+// =============================================================
+// Klien REST API untuk dashboard admin klinik.
+//
+// Dashboard ini sekarang bicara ke SERVER APOTEK (Laravel + Sanctum)
+// yang sama dengan aplikasi pasien, lewat prefiks /api/admin - jadi
+// satu basis data melayani dua aplikasi (PRD §16, N-05).
+//
+// Di pengembangan, Vite mem-proxy /api ke http://127.0.0.1:8000
+// (lihat vite.config.js), jadi cukup memakai path relatif.
+// =============================================================
+const BASE = import.meta.env?.VITE_API_URL || '/api/admin'
 
 async function req(method, path, body) {
   let res
@@ -12,7 +19,9 @@ async function req(method, path, body) {
       body: body ? JSON.stringify(body) : undefined,
     })
   } catch {
-    const err = new Error('Tidak dapat terhubung ke server API. Jalankan: npm run server')
+    const err = new Error(
+      'Tidak dapat terhubung ke server API. Pastikan server apotek berjalan (php artisan serve).',
+    )
     err.offline = true
     throw err
   }
@@ -26,7 +35,8 @@ async function req(method, path, body) {
     }
   }
   if (!res.ok) {
-    const err = new Error(data?.pesan || `Permintaan gagal (${res.status})`)
+    // Server memakai `pesan` (kontrak klinik) atau `message` (Laravel).
+    const err = new Error(data?.pesan || data?.message || `Permintaan gagal (${res.status})`)
     err.status = res.status
     err.data = data
     throw err

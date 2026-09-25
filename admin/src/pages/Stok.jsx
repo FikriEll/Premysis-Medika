@@ -4,7 +4,7 @@ import { Panel, Button, Field, Input, Select, SearchInput, EmptyState, Metric, M
 import DataTable from '../components/DataTable'
 import Modal from '../components/Modal'
 import StatusBadge from '../components/StatusBadge'
-import { namaProduk, namaPengguna, fmtTanggal } from '../data/mockData'
+import { namaProduk, namaPengguna, fmtTanggal, hariIni } from '../data/mockData'
 import { useData } from '../context/DataContext'
 import { useAuth } from '../context/AuthContext'
 import { IconPlus, IconStok, IconAlert } from '../components/Icons'
@@ -40,7 +40,7 @@ export default function Stok() {
         id_produk: Number(form.id_produk),
         jenis: form.jenis,
         jumlah: Number(form.jumlah),
-        tanggal: '2026-04-20',
+        tanggal: hariIni(),
         keterangan: form.keterangan,
         sumber: form.sumber,
         id_pengguna: user?.id,

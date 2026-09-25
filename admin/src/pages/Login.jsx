@@ -12,9 +12,10 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    const res = login(email, password)
+    // Login diverifikasi server apotek (Laravel); perlu ditunggu.
+    const res = await login(email, password)
     if (res.ok) {
       navigate('/')
     } else {

@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import PageHeader from '../components/PageHeader'
 import { Panel, Metric, MetricStrip, Button, EmptyState } from '../components/ui'
 import StatusBadge from '../components/StatusBadge'
-import { dashboardStats, namaPasien, fmtRupiah, fmtTanggal, namaPengguna } from '../data/mockData'
+import { dashboardStats, namaPasien, fmtRupiah, fmtTanggal, namaPengguna, hariIni } from '../data/mockData'
 import { useData } from '../context/DataContext'
 import {
   IconAppointment, IconPemeriksaan, IconPesanan, IconAlert,
@@ -31,10 +31,10 @@ export default function Dashboard() {
   // mencerminkan aktivitas terbaru dari dashboard maupun app pasien.
   const { appointment, produk, pesanan, logAktivitas } = useData()
   const stats = dashboardStats()
-  const hariIni = '2026-04-20'
+  const tgl = hariIni()
 
   const apptHariIni = appointment
-    .filter((a) => a.tanggal === hariIni)
+    .filter((a) => a.tanggal === tgl)
     .sort((a, b) => a.waktu.localeCompare(b.waktu))
 
   const stokMenipis = produk
@@ -59,7 +59,7 @@ export default function Dashboard() {
     <div>
       <PageHeader
         title={`Selamat datang, ${user?.nama?.split(' ')[0]}`}
-        subtitle={`Ringkasan operasional klinik per ${fmtTanggal(hariIni)}.`}
+        subtitle={`Ringkasan operasional klinik per ${fmtTanggal(tgl)}.`}
         actions={
           <>
             <Link to="/appointment">

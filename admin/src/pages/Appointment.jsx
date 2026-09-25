@@ -4,7 +4,7 @@ import { Panel, Button, Field, Input, Select, Textarea, SearchInput, EmptyState 
 import DataTable from '../components/DataTable'
 import Modal, { ConfirmDialog } from '../components/Modal'
 import StatusBadge from '../components/StatusBadge'
-import { namaPasien, fmtTanggal } from '../data/mockData'
+import { namaPasien, fmtTanggal, hariIni as tanggalHariIni } from '../data/mockData'
 import { useData } from '../context/DataContext'
 import { useAuth } from '../context/AuthContext'
 import { IconPlus, IconEdit, IconCheck, IconClose, IconAppointment, IconWhatsapp } from '../components/Icons'
@@ -19,8 +19,8 @@ const LAYANAN = [
 
 const STATUS_APPT = ['Menunggu Konfirmasi', 'Dikonfirmasi', 'Selesai', 'Dibatalkan']
 
-// Filter periode sederhana (berdasarkan tanggal mock 2026-04-20)
-const hariIni = '2026-04-20'
+// Filter periode sederhana (berdasarkan tanggal hari ini).
+const hariIni = tanggalHariIni()
 
 export default function Appointment() {
   // Data appointment dibaca dari API bersama, jadi janji yang dibuat

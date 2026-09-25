@@ -20,7 +20,21 @@ export default function Laporan() {
   // dengan yang dilihat pasien.
   const { pasien, appointment, pemeriksaan, jadwalVaksin, produk, pesanan } = useData()
   const [jenis, setJenis] = useState('pasien')
-  const [periode, setPeriode] = useState('2026-04')
+  // Opsi periode: tiga bulan terakhir (label saja; penyaringan rinci
+  // menyusul saat laporan dipecah per periode).
+  const opsiPeriode = useMemo(() => {
+    const out = []
+    const d = new Date()
+    for (let i = 0; i < 3; i++) {
+      const t = new Date(d.getFullYear(), d.getMonth() - i, 1)
+      out.push({
+        nilai: `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}`,
+        label: t.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }),
+      })
+    }
+    return out
+  }, [])
+  const [periode, setPeriode] = useState(opsiPeriode[0].nilai)
 
   const stat = dashboardStats()
 
@@ -143,9 +157,9 @@ export default function Laporan() {
           {JENIS.map((j) => <option key={j.k} value={j.k}>{j.l}</option>)}
         </Select>
         <Select value={periode} onChange={(e) => setPeriode(e.target.value)} className="sm:w-44">
-          <option value="2026-04">April 2026</option>
-          <option value="2026-03">Maret 2026</option>
-          <option value="2026-02">Februari 2026</option>
+          {opsiPeriode.map((o) => (
+            <option key={o.nilai} value={o.nilai}>{o.label}</option>
+          ))}
         </Select>
       </div>
 

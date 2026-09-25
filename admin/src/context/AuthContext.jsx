@@ -1,9 +1,14 @@
 import { createContext, useContext, useEffect, useState } from 'react'
-import { users } from '../data/mockData'
+import api from '../lib/api'
 
 // =============================================================
-// AuthContext - simulasi login & RBAC (frontend-only, mock)
-// Nanti diganti autentikasi sungguhan (REST API + token).
+// AuthContext - login nyata ke server apotek (Laravel).
+//
+// Sebelumnya login disimulasikan di peramban (cocokkan email dengan
+// data mock). Sekarang kredensial diverifikasi server lewat
+// POST /api/admin/auth/login-admin, sehingga akun nonaktif benar-benar
+// ditolak dan sesi mengikuti data pengguna di basis data.
+//
 // Matriks hak akses mengikuti PRD §5.1.
 // =============================================================
 
@@ -34,21 +39,19 @@ export function AuthProvider({ children }) {
     setLoading(false)
   }, [])
 
-  // Login mock: cocokkan email dengan data pengguna, password apa pun diterima
-  const login = (email, password) => {
-    const found = users.find((u) => u.email.toLowerCase() === email.toLowerCase())
-    if (!found) {
-      return { ok: false, message: 'Email tidak terdaftar.' }
-    }
-    if (!found.status_aktif) {
-      return { ok: false, message: 'Akun tidak aktif. Hubungi Bidan.' }
-    }
+  // Login nyata: verifikasi email & password ke server apotek.
+  const login = async (email, password) => {
     if (!password || password.length < 1) {
       return { ok: false, message: 'Password wajib diisi.' }
     }
-    setUser(found)
-    localStorage.setItem('premysis_user', JSON.stringify(found))
-    return { ok: true }
+    try {
+      const found = await api.loginAdmin(email, password)
+      setUser(found)
+      localStorage.setItem('premysis_user', JSON.stringify(found))
+      return { ok: true }
+    } catch (e) {
+      return { ok: false, message: e.message || 'Gagal masuk.' }
+    }
   }
 
   const logout = () => {
