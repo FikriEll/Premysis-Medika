@@ -2,24 +2,43 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useStore } from '../lib/store'
 import { fmtRupiah } from '../../../shared/format'
-import { Kartu, Tombol, Lencana, Kosong, PengaturJumlah, BarisInfo, Memuat, Galat } from '../components/ui'
-import { IconProduk, IconKeranjang, IconPeringatan, IconInfo, IconToko, IconHati } from '../components/Icons'
-import { IlustrasiObat } from '../components/Ilustrasi'
+import { gambarProduk } from '../lib/gambar'
+import { Kartu, Tombol, Lencana, Kosong, PengaturJumlah, BarisInfo, Memuat } from '../components/ui'
+import {
+  IconProduk, IconKeranjang, IconPeringatan, IconInfo, IconToko, IconHati,
+  IconPanahKanan, IconLabel, IconPenggaris, IconBagikan,
+  IconKirimPesan, IconKamera, IconTerverifikasi, IconJam, IconCentangBulat,
+} from '../components/Icons'
 
 // F-08 Detail Produk.
 //
-// Urutan sesuai kebutuhan pembeli: gambar + nama + harga dulu,
-// tombol Tambah ke Keranjang, baru keterangan tambahan di bawah.
+// Susunan mengikuti referensi "product detail page":
+//   remah roti -> galeri gambar -> judul + harga -> tombol beli ->
+//   lencana/tag -> keterangan -> info penjual.
+//
+// Referensi memakai komponen shadcn (Button, Badge, Avatar) dan
+// animasi framer-motion. Karena proyek ini JSX tanpa shadcn, gaya
+// itu dipetakan ke komponen sendiri (Tombol, Lencana, AvatarPasien)
+// dan token warna aplikasi - jadi tidak ada ketergantungan baru dan
+// mode gelap tetap bekerja.
+//
+// Seluruh fungsi lama dipertahankan: pemilih jumlah, subtotal,
+// tambah ke keranjang, favorit, peringatan resep, produk serupa.
 export default function DetailProduk() {
   const { slug } = useParams()
   const nav = useNavigate()
-  const { ambilProdukDetail, tambahKeranjang, jumlahDiKeranjang, beriToast, user, toggleWishlist, wishlistIds } = useStore()
+  const {
+    ambilProdukDetail, tambahKeranjang, jumlahDiKeranjang, beriToast,
+    user, toggleWishlist, wishlistIds, pengaturan,
+  } = useStore()
 
   const [produk, setProduk] = useState(null)
   const [terkait, setTerkait] = useState([])
   const [memuat, setMemuat] = useState(true)
   const [galat, setGalat] = useState('')
   const [jumlah, setJumlah] = useState(1)
+  const [bukaKeterangan, setBukaKeterangan] = useState(false)
+  const [indeksGambar, setIndeksGambar] = useState(0)
 
   useEffect(() => {
     let batal = false
@@ -30,6 +49,9 @@ export default function DetailProduk() {
         setProduk(res.data)
         setTerkait(res.related || [])
         setGalat('')
+        setIndeksGambar(0)
+        setBukaKeterangan(false)
+        setJumlah(1)
       })
       .catch((e) => !batal && setGalat(e.message))
       .finally(() => !batal && setMemuat(false))
@@ -60,8 +82,13 @@ export default function DetailProduk() {
 
   const habis = !produk.in_stock || produk.stock <= 0
   const boleh = !produk.requires_prescription
+  const namaKlinik = pengaturan?.site_name || 'Klinik Premysis Medika'
 
-  const tambah = async () => {
+  // Galeri: server saat ini mengirim satu gambar per produk. Bila
+  // suatu saat ada beberapa, titik navigasi otomatis muncul.
+  const gambar = [gambarProduk(produk)]
+
+  const tambah = async (langsungKeKeranjang = false) => {
     if (!user) {
       beriToast('Masuk dulu untuk menambah ke keranjang.', 'info')
       nav('/masuk', { state: { dari: `/produk/${produk.slug}` } })
@@ -70,7 +97,7 @@ export default function DetailProduk() {
     try {
       await tambahKeranjang(produk.id, jumlah)
       beriToast(`${jumlah} ${produk.unit} ${produk.name} masuk keranjang.`, 'sukses')
-      nav('/keranjang')
+      if (langsungKeKeranjang) nav('/keranjang')
     } catch (e) {
       beriToast(e.message, 'galat')
     }
@@ -92,41 +119,143 @@ export default function DetailProduk() {
     }
   }
 
+  // Bagikan tautan produk. Memakai berbagi bawaan perangkat bila ada,
+  // kalau tidak salin tautan ke papan klip.
+  const bagikan = async () => {
+    const url = window.location.href
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: produk.name, url })
+        return
+      }
+      await navigator.clipboard.writeText(url)
+      beriToast('Tautan produk disalin.', 'sukses')
+    } catch {
+      beriToast('Tautan produk: ' + url, 'info')
+    }
+  }
+
+  const wa = (pengaturan?.whatsapp || '').replace(/[^0-9]/g, '').replace(/^0/, '62')
+  const tautanTanya = wa
+    ? `https://wa.me/${wa}?text=${encodeURIComponent(`Halo, saya ingin bertanya tentang ${produk.name} (${fmtRupiah(produk.price)}).`)}`
+    : null
+
+  // Tag/lencana ringkas, meniru baris "badge" di referensi.
+  const tag = [
+    produk.category?.name && { label: produk.category.name, Ikon: IconLabel },
+    produk.drug_class_label && { label: produk.drug_class_label, Ikon: IconInfo },
+    { label: `Satuan ${produk.unit}`, Ikon: IconPenggaris },
+    { label: habis ? 'Stok habis' : `Tersedia ${produk.stock}`, Ikon: IconCentangBulat },
+  ].filter(Boolean)
+
+  const keteranganSingkat = produk.description || 'Belum ada keterangan tambahan untuk produk ini.'
+  const keteranganPanjang = keteranganSingkat.length > 120
+  const keteranganTampil = !keteranganPanjang || bukaKeterangan ? keteranganSingkat : `${keteranganSingkat.slice(0, 120)}...`
+
   return (
-    <div className="space-y-5">
-      {/* --- Bagian utama: gambar di kiri, informasi di kanan saat layar lebar --- */}
-      <Kartu className="md:grid md:grid-cols-[minmax(0,380px)_minmax(0,1fr)] md:items-start md:gap-7 md:space-y-0">
-        <div className="flex h-56 items-center justify-center overflow-hidden rounded-[var(--radius-control)] permukaan-1 text-accent md:h-[380px]">
-          {produk.image ? (
-            <img src={produk.image} alt={produk.name} className="h-full w-full object-cover" />
-          ) : (
-            <IconProduk size={68} weight="bold" />
-          )}
+    <div className="mx-auto w-full max-w-[1180px] space-y-6">
+      {/* ============ REMAH ROTI ============ */}
+      <nav aria-label="Remah roti" className="flex flex-wrap items-center gap-1 text-[14.5px] text-secondary">
+        <button type="button" onClick={() => nav('/')} className="hover:text-accent">Beranda</button>
+        <IconPanahKanan size={15} className="text-muted" />
+        <button type="button" onClick={() => nav('/toko')} className="hover:text-accent">Toko</button>
+        {produk.category?.name && (
+          <>
+            <IconPanahKanan size={15} className="text-muted" />
+            <button
+              type="button"
+              onClick={() => nav(`/toko?kategori=${produk.category.slug}`)}
+              className="hover:text-accent"
+            >
+              {produk.category.name}
+            </button>
+          </>
+        )}
+        <IconPanahKanan size={15} className="text-muted" />
+        <span className="truncate font-medium text-primary" aria-current="page">{produk.name}</span>
+      </nav>
+
+      {/* ============ UTAMA: galeri + informasi ============ */}
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12">
+        {/* --- Galeri gambar --- */}
+        <div className="flex flex-col gap-4">
+          <div className="relative flex aspect-[4/5] w-full items-center justify-center overflow-hidden rounded-[var(--radius-shell)] border border-hairline permukaan-1 text-accent">
+            {gambar.length > 0 && (
+              <img
+                key={indeksGambar}
+                src={gambar[indeksGambar]}
+                alt={produk.name}
+                className="h-full w-full object-cover"
+              />
+            )}
+            {!habis && (
+              <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-950/85 px-3 py-1 text-[12.5px] font-semibold text-emerald-50 backdrop-blur-sm">
+                <IconJam size={13} weight="bold" />
+                Siap dikirim hari ini
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex gap-2">
+              {gambar.length > 1 &&
+                gambar.map((_, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => setIndeksGambar(i)}
+                    aria-label={`Lihat gambar ${i + 1}`}
+                    className={`h-2.5 w-2.5 rounded-full transition-colors ${
+                      indeksGambar === i ? 'bg-accent' : 'bg-[var(--border-strong)] hover:bg-[var(--text-muted)]'
+                    }`}
+                  />
+                ))}
+            </div>
+            <Tombol variant="secondary" size="sm" onClick={() => nav(produk.category ? `/toko?kategori=${produk.category.slug}` : '/toko')}>
+              <IconKamera size={17} weight="bold" />
+              Cari yang serupa
+            </Tombol>
+          </div>
         </div>
 
-        <div className="space-y-4">
-          <div>
-            <h1 className="text-[24px] font-bold leading-snug tracking-tight text-primary md:text-[28px]">{produk.name}</h1>
-            <p className="mt-1 text-[16px] text-secondary">{produk.category?.name || 'Produk kesehatan'}</p>
+        {/* --- Informasi produk --- */}
+        <div className="flex flex-col">
+          {/* Tombol favorit & bagikan */}
+          <div className="mb-4 flex items-center justify-end gap-2">
+            <button
+              type="button"
+              onClick={simpanFavorit}
+              aria-label={favorit ? `Hapus ${produk.name} dari favorit` : `Simpan ${produk.name} ke favorit`}
+              aria-pressed={favorit}
+              className={`flex h-11 w-11 items-center justify-center rounded-full border transition-colors ${
+                favorit
+                  ? 'border-[var(--color-signal-rose)] bg-[var(--color-signal-rose-soft)] text-[var(--color-signal-rose)]'
+                  : 'border-hairline surface-raised text-secondary hover:text-[var(--color-signal-rose)]'
+              }`}
+            >
+              <IconHati size={21} weight={favorit ? 'fill' : 'regular'} />
+            </button>
+            <button
+              type="button"
+              onClick={bagikan}
+              aria-label="Bagikan produk ini"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-hairline surface-raised text-secondary transition-colors hover:text-accent"
+            >
+              <IconBagikan size={20} weight="bold" />
+            </button>
           </div>
 
-          <div className="flex items-end justify-between gap-3">
-            <p className="numeric text-[30px] font-bold leading-none text-primary">{fmtRupiah(produk.price)}</p>
-            <div className="flex items-center gap-3">
-              <p className="text-[16px] text-secondary">per {produk.unit}</p>
-              <button
-                type="button"
-                onClick={simpanFavorit}
-                aria-label={favorit ? `Hapus ${produk.name} dari favorit` : `Simpan ${produk.name} ke favorit`}
-                aria-pressed={favorit}
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-hairline surface-raised text-[var(--color-signal-rose)] active:surface-hover"
-              >
-                <IconHati size={22} weight={favorit ? 'fill' : 'regular'} />
-              </button>
-            </div>
+          <h1 className="text-[26px] font-medium leading-tight tracking-tight text-heading sm:text-[32px]">
+            {produk.name}
+          </h1>
+
+          <div className="mt-3 flex flex-wrap items-end gap-x-3 gap-y-1">
+            <span className="numeric text-[32px] font-bold leading-none text-primary">{fmtRupiah(produk.price)}</span>
+            <span className="text-[15.5px] text-secondary">/ {produk.unit}</span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          {/* Lencana status: resep / stok */}
+          <div className="mt-4 flex flex-wrap items-center gap-2">
             {produk.requires_prescription && (
               <Lencana tone="amber" ikon={<IconPeringatan size={14} weight="bold" />}>
                 Perlu resep
@@ -141,9 +270,9 @@ export default function DetailProduk() {
             )}
           </div>
 
-          {/* --- Peringatan resep, kalau perlu --- */}
+          {/* Peringatan resep */}
           {!boleh && (
-            <p className="flex items-start gap-2.5 rounded-[var(--radius-card)] bg-[var(--color-signal-amber-soft)] px-4 py-3.5 text-[16px] leading-relaxed text-[var(--color-signal-amber)]">
+            <p className="mt-4 flex items-start gap-2.5 rounded-[var(--radius-card)] bg-[var(--color-signal-amber-soft)] px-4 py-3.5 text-[15.5px] leading-relaxed text-[var(--color-signal-amber)]">
               <IconPeringatan size={20} weight="bold" className="mt-0.5 shrink-0" />
               <span>
                 Produk ini memerlukan resep dokter/bidan. Unggah resep Anda saat checkout, lalu apotek
@@ -151,38 +280,110 @@ export default function DetailProduk() {
               </span>
             </p>
           )}
-        </div>
-      </Kartu>
 
-      {/* --- Tindakan utama --- */}
-      {!habis && (
-        <>
-          <div className="flex items-center justify-between gap-4">
-            <span className="text-[17px] font-semibold text-primary">Jumlah</span>
-            <PengaturJumlah
-              nilai={jumlah}
-              min={1}
-              max={produk.stock}
-              onKurang={() => setJumlah((n) => Math.max(1, n - 1))}
-              onTambah={() => setJumlah((n) => Math.min(produk.stock, n + 1))}
-            />
+          {/* Jumlah + subtotal */}
+          {!habis && (
+            <div className="mt-5 space-y-4">
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-[16.5px] font-semibold text-primary">Jumlah</span>
+                <PengaturJumlah
+                  nilai={jumlah}
+                  min={1}
+                  max={produk.stock}
+                  onKurang={() => setJumlah((n) => Math.max(1, n - 1))}
+                  onTambah={() => setJumlah((n) => Math.min(produk.stock, n + 1))}
+                />
+              </div>
+
+              <div className="rounded-[var(--radius-control)] surface-sunken px-4 py-3.5">
+                <BarisInfo label="Subtotal" className="py-1">
+                  <span className="numeric text-[20.5px] font-bold text-primary">
+                    {fmtRupiah(produk.price * jumlah)}
+                  </span>
+                </BarisInfo>
+              </div>
+            </div>
+          )}
+
+          {/* Tombol tindakan: beli sekarang + tanya apoteker */}
+          <div className="mt-5 flex flex-col gap-2.5 sm:flex-row">
+            <Tombol size="lg" className="flex-1" disabled={habis} onClick={() => tambah(true)}>
+              <IconKeranjang size={20} weight="bold" />
+              Beli Sekarang
+            </Tombol>
+            {tautanTanya ? (
+              <a
+                href={tautanTanya}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex min-h-13 flex-1 items-center justify-center gap-2 rounded-[var(--radius-control)] border border-strong px-5 text-[17px] font-semibold text-primary transition-colors hover:surface-hover"
+              >
+                <IconKirimPesan size={19} weight="bold" />
+                Tanya Apoteker
+              </a>
+            ) : (
+              <Tombol variant="secondary" size="lg" className="flex-1" disabled={habis} onClick={() => tambah(false)}>
+                <IconKeranjang size={20} weight="bold" />
+                Tambah ke Keranjang
+              </Tombol>
+            )}
           </div>
 
-          <div className="rounded-[var(--radius-control)] surface-sunken px-4 py-3.5">
-            <BarisInfo label="Subtotal" className="py-1">
-              <span className="numeric text-[20.5px] font-bold text-primary">
-                {fmtRupiah(produk.price * jumlah)}
+          {/* Tag / lencana */}
+          <div className="mt-6 flex flex-wrap gap-2">
+            {tag.map((t, i) => (
+              <span
+                key={i}
+                className="inline-flex items-center gap-1.5 rounded-full border border-hairline surface-sunken px-3 py-1.5 text-[13.5px] font-medium text-secondary"
+              >
+                <t.Ikon size={14} weight="bold" className="text-accent" />
+                {t.label}
               </span>
-            </BarisInfo>
+            ))}
           </div>
 
-          <Tombol size="lg" penuh onClick={tambah}>
-            <IconKeranjang size={21} weight="bold" />
-            Tambah ke Keranjang
-          </Tombol>
-        </>
-      )}
+          {/* Keterangan */}
+          <p className="mt-6 text-[16.5px] leading-relaxed text-secondary">
+            {keteranganTampil}
+            {keteranganPanjang && (
+              <button
+                type="button"
+                onClick={() => setBukaKeterangan((v) => !v)}
+                className="ml-2 font-semibold text-accent hover:underline"
+              >
+                {bukaKeterangan ? 'Sembunyikan' : 'Baca selengkapnya'}
+              </button>
+            )}
+          </p>
 
+          {/* Info penjual (apotek) */}
+          <div className="mt-8 border-t border-hairline pt-6">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-950 text-[17px] font-bold text-emerald-50">
+                  PM
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate text-[16.5px] font-semibold text-primary">{namaKlinik}</p>
+                  <p className="mt-0.5 inline-flex items-center gap-1.5 text-[14px] text-secondary">
+                    <IconTerverifikasi size={15} className="text-accent" />
+                    Apoteker berwenang · obat asli &amp; bersegel
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => nav('/toko')}
+                className="text-[15px] font-semibold text-accent hover:underline"
+              >
+                Lihat semua produk &rarr;
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ============ STOK HABIS ============ */}
       {habis && (
         <Kartu>
           <Kosong
@@ -198,12 +399,9 @@ export default function DetailProduk() {
         </Kartu>
       )}
 
-      {/* --- Keterangan tambahan --- */}
+      {/* ============ KETERANGAN LENGKAP ============ */}
       <Kartu className="space-y-3">
-        <h2 className="text-[18.5px] font-semibold tracking-tight text-primary">Keterangan</h2>
-        {produk.description && (
-          <p className="text-[17px] leading-relaxed text-secondary">{produk.description}</p>
-        )}
+        <h2 className="text-[18.5px] font-semibold tracking-tight text-primary">Informasi Produk</h2>
 
         <div className="divide-y divide-[var(--border-hairline)]">
           <BarisInfo label="Kategori">{produk.category?.name || '-'}</BarisInfo>
@@ -216,29 +414,35 @@ export default function DetailProduk() {
             <span className="numeric">{habis ? 'Habis' : `${produk.stock} ${produk.unit}`}</span>
           </BarisInfo>
         </div>
+
+        {produk.description && (
+          <p className="border-t border-hairline pt-3 text-[16px] leading-relaxed text-secondary">
+            {produk.description}
+          </p>
+        )}
       </Kartu>
 
-      {/* --- Produk terkait --- */}
+      {/* ============ PRODUK SERUPA ============ */}
       {terkait.length > 0 && (
         <section>
-          <h2 className="mb-3 text-[18.5px] font-semibold tracking-tight text-primary">
-            Produk Serupa
+          <h2 className="mb-3 text-[19px] font-semibold tracking-tight text-heading">
+            Mungkin Anda juga suka
           </h2>
-          <ul className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+          <ul className="grid gap-4 grid-cols-2 lg:grid-cols-4">
             {terkait.slice(0, 4).map((p) => (
-              <li key={p.id}>
-                <Kartu padat>
+              <li key={p.id} className="reveal">
+                <Kartu padat className="h-full transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-lift">
                   <button
                     type="button"
                     onClick={() => nav(`/produk/${p.slug}`)}
-                    className="flex w-full items-center gap-3 p-3.5 text-left"
+                    className="flex h-full w-full flex-col text-left"
                   >
-                    <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[var(--radius-control)] permukaan-1 text-accent">
-                      {p.image ? <img src={p.image} alt="" className="h-full w-full object-cover" /> : <IconProduk size={24} />}
+                    <span className="flex aspect-square w-full shrink-0 items-center justify-center overflow-hidden permukaan-1 text-accent">
+                      <img src={gambarProduk(p)} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-500 hover:scale-105" />
                     </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[17px] font-semibold text-primary">{p.name}</span>
-                      <span className="numeric mt-0.5 block text-[16px] font-bold text-primary">{fmtRupiah(p.price)}</span>
+                    <span className="flex min-w-0 flex-1 flex-col gap-1 p-3.5">
+                      <span className="line-clamp-2 text-[15.5px] font-semibold leading-snug text-primary">{p.name}</span>
+                      <span className="numeric mt-auto text-[16px] font-bold text-primary">{fmtRupiah(p.price)}</span>
                     </span>
                   </button>
                 </Kartu>

@@ -2,7 +2,6 @@ import { useNavigate } from 'react-router-dom'
 import { useStore } from '../lib/store'
 import { fmtRupiah } from '../../../shared/format'
 import { Kartu, JudulSeksi, Lencana, Tombol, Kosong, TautanLanjut, KartuAksi } from '../components/ui'
-import { KartuProduk } from '../components/kartu'
 import {
   IconBelanja, IconKeranjang, IconPesanan, IconProfil,
   IconWhatsapp, IconLokasi, IconSparkle, IconToko,
@@ -14,6 +13,7 @@ import {
 import { IlustrasiKeranjang } from '../components/Ilustrasi'
 import { statusPesanan } from '../lib/status'
 import Carousel from '../components/Carousel'
+import CarouselProduk from '../components/CarouselProduk'
 import LogoKlinik from '../components/LogoKlinik'
 import { JanjiLayanan, SuratKabar } from '../components/BagianBeranda'
 import {
@@ -130,7 +130,7 @@ export default function Beranda() {
   useSembunyikanAjakan()
   const {
     user, produkUnggulan, promo, pesananSaya, kategori, janji, faq, testimoni,
-    pengaturan, beriToast, tambahKeranjang,
+    pengaturan, beriToast, tambahKeranjang, jumlahDiKeranjang,
   } = useStore()
 
   const pesananTerakhir = pesananSaya[0]
@@ -141,9 +141,9 @@ export default function Beranda() {
 
   const namaKlinik = pengaturan?.site_name || 'Klinik Premysis Medika'
   const tagline = pengaturan?.site_tagline || 'Obat lengkap, cepat & terpercaya'
-  const alamat = pengaturan?.address || 'Jl. Kesehatan Raya No. 45, Depok, Jawa Barat'
-  const whatsapp = (pengaturan?.whatsapp || '6281211112222').replace(/[^0-9]/g, '')
-  const telepon = pengaturan?.phone || '0812-1111-2222'
+  const alamat = pengaturan?.address || 'Kp. Cibitung Bedeng RT 05/04, Kel. Telaga Asih, Kec. Cikarang Barat, Kab. Bekasi, Jawa Barat 17530'
+  const whatsapp = (pengaturan?.whatsapp || '6281317739371').replace(/[^0-9]/g, '')
+  const telepon = pengaturan?.phone || '081317739371'
 
   const slide = susunSlide(promo)
 
@@ -173,7 +173,7 @@ export default function Beranda() {
         <div className="grid items-center gap-10 lg:grid-cols-2">
           {/* Kiri: teks */}
           <div className="reveal">
-            <LencanaPil dot>Melayani Depok &amp; sekitarnya</LencanaPil>
+            <LencanaPil dot>Melayani Cikarang &amp; sekitarnya</LencanaPil>
 
             <h1 className="mt-6 text-[34px] font-medium leading-[1.08] tracking-tight text-heading sm:text-[44px] lg:text-[50px]">
               Dikelola lokal.
@@ -315,12 +315,12 @@ export default function Beranda() {
         </div>
       </section>
 
-      {/* ============ 3. PRODUK UNGGULAN ============ */}
-      <section>
-        <JudulSeksi aksi={<TautanLanjut onClick={() => nav('/toko')}>Semua produk</TautanLanjut>}>
-          Produk Unggulan
-        </JudulSeksi>
-        {produkUnggulan.length === 0 ? (
+      {/* ============ 3. PRODUK UNGGULAN (carousel geser) ============ */}
+      {produkUnggulan.length === 0 ? (
+        <section>
+          <JudulSeksi aksi={<TautanLanjut onClick={() => nav('/toko')}>Semua produk</TautanLanjut>}>
+            Produk Unggulan
+          </JudulSeksi>
           <Kartu padat>
             <Kosong
               judul="Belum ada produk unggulan"
@@ -329,61 +329,17 @@ export default function Beranda() {
               aksi={<Tombol size="lg" onClick={() => nav('/toko')}>Buka Toko</Tombol>}
             />
           </Kartu>
-        ) : (
-          <>
-            <ul className="space-y-3 lg:hidden">
-              {produkUnggulan.slice(0, 4).map((p) => (
-                <li key={p.id}>
-                  <Kartu padat>
-                    <div className="flex items-center gap-3.5 p-4">
-                      <button
-                        type="button"
-                        onClick={() => nav(`/produk/${p.slug}`)}
-                        className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[var(--radius-control)] permukaan-1 text-accent"
-                      >
-                        {p.image ? <img src={p.image} alt="" className="h-full w-full object-cover" /> : <IconBelanja size={26} />}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => nav(`/produk/${p.slug}`)}
-                        className="min-w-0 flex-1 text-left"
-                      >
-                        <span className="block text-[17.5px] font-semibold leading-snug text-primary">{p.name}</span>
-                        <span className="numeric mt-1 block text-[18px] font-bold text-primary">{fmtRupiah(p.price)}</span>
-                        <span className="mt-0.5 block text-[15px] text-secondary">
-                          {p.in_stock ? `Tersedia ${p.stock} ${p.unit}` : 'Stok habis'}
-                        </span>
-                      </button>
-                      <Tombol
-                        size="sm"
-                        disabled={!p.in_stock}
-                        onClick={() => tambah(p)}
-                        aria-label={`Tambah ${p.name} ke keranjang`}
-                      >
-                        <IconKeranjang size={18} weight="bold" />
-                        Tambah
-                      </Tombol>
-                    </div>
-                  </Kartu>
-                </li>
-              ))}
-            </ul>
-
-            <ul className="hidden gap-4 sm:grid sm:grid-cols-2 lg:grid lg:grid-cols-4">
-              {produkUnggulan.slice(0, 4).map((p) => (
-                <li key={p.id} className="reveal">
-                  <KartuProduk
-                    ringkas
-                    produk={p}
-                    onBuka={() => nav(`/produk/${p.slug}`)}
-                    onTambah={tambah}
-                  />
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
-      </section>
+        </section>
+      ) : (
+        <CarouselProduk
+          judul="Produk Unggulan"
+          produk={produkUnggulan}
+          onLihatSemua={() => nav('/toko')}
+          onBuka={(p) => nav(`/produk/${p.slug}`)}
+          onTambah={tambah}
+          jumlahDiKeranjang={(p) => jumlahDiKeranjang(p.id)}
+        />
+      )}
 
       {/* ============ 4. PERBANDINGAN ============ */}
       <section>

@@ -229,7 +229,7 @@ export default function Pembayaran() {
               Alamat pengambilan
             </p>
             <p className="mt-1 text-[16px] leading-relaxed text-secondary">
-              Klinik Premysis Medika — Jl. Kesehatan Raya No. 45, Depok
+              Klinik Premysis Medika — Kp. Cibitung Bedeng, Telaga Asih, Cikarang Barat, Bekasi
             </p>
           </div>
         </Kartu>

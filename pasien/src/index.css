@@ -397,69 +397,86 @@
 
 /* =============================================================
    Dasar dokumen
+
+   SEMUA aturan di blok ini berada di dalam @layer base. Ini bukan
+   gaya-gayaan: Tailwind v4 menaruh utility-nya di @layer utilities,
+   dan menurut spesifikasi CSS Cascade Layers, aturan TANPA layer
+   SELALU menang atas aturan ber-layer - berapa pun spesifisitasnya.
+   Jadi CSS global yang ditulis di luar layer akan membajak utility
+   Tailwind di elemen yang sama. Dua bug nyata yang pernah muncul
+   dari kelalaian ini: bilah gulir carousel tidak bisa disembunyikan
+   (lihat komentar scrollbar di bawah), dan :focus-visible memaksa
+   border-radius pada tombol bulat.
    ============================================================= */
-html,
-body,
-#root {
-  height: 100%;
-}
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
 
-body {
-  background-color: var(--surface-canvas);
-  color: var(--text-primary);
-  font-family: var(--font-sans);
-  /* Brief §4: body text 15-16px. 16px juga menjadi dasar rem,
-     sehingga pengguna yang memperbesar font bawaan perangkat
-     (aksesibilitas §22) ikut memperbesar seluruh antarmuka. */
-  font-size: 16px;
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-}
+  body {
+    background-color: var(--surface-canvas);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    /* Brief §4: body text 15-16px. 16px juga menjadi dasar rem,
+       sehingga pengguna yang memperbesar font bawaan perangkat
+       (aksesibilitas §22) ikut memperbesar seluruh antarmuka. */
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
 
-/* Judul di halaman publik memakai Playfair Display, seperti
-   referensi Live Oak. Ditulis dengan :where() supaya spesifisitasnya
-   nol - utility Tailwind (font-sans, text-white, ...) tetap menang
-   bila sebuah judul perlu gaya lain. */
-:where(.publik) h1,
-:where(.publik) h2,
-:where(.publik) h3,
-:where(.publik) h4 {
-  font-family: var(--font-serif);
-}
+  /* Judul di halaman publik memakai Playfair Display, seperti
+     referensi Live Oak. Ditulis dengan :where() supaya spesifisitasnya
+     nol - utility Tailwind (font-sans, text-white, ...) tetap menang
+     bila sebuah judul perlu gaya lain. */
+  :where(.publik) h1,
+  :where(.publik) h2,
+  :where(.publik) h3,
+  :where(.publik) h4 {
+    font-family: var(--font-serif);
+  }
 
-/* Halaman publik memakai beberapa hiasan (gumpalan blur) yang
-   sengaja keluar tepi. `overflow-x: clip` memotong luberan
-   mendatar itu tanpa membuat wadah gulir baru, sehingga header
-   yang fixed tetap bekerja dan halaman tidak bisa digeser ke
-   samping di ponsel. */
-.publik {
-  overflow-x: clip;
-}
+  /* Halaman publik memakai beberapa hiasan (gumpalan blur) yang
+     sengaja keluar tepi. `overflow-x: clip` memotong luberan
+     mendatar itu tanpa membuat wadah gulir baru, sehingga header
+     yang fixed tetap bekerja dan halaman tidak bisa digeser ke
+     samping di ponsel. */
+  .publik {
+    overflow-x: clip;
+  }
 
-/* Angka & kode selalu monospace tabular (VISUAL_DENSITY 6). */
-.font-mono,
-kbd,
-code,
-.numeric {
-  font-variant-numeric: tabular-nums;
-}
+  /* Angka & kode selalu monospace tabular (VISUAL_DENSITY 6). */
+  .font-mono,
+  kbd,
+  code,
+  .numeric {
+    font-variant-numeric: tabular-nums;
+  }
 
-h1,
-h2,
-h3 {
-  text-wrap: balance;
-}
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
 
-p {
-  text-wrap: pretty;
-}
+  p {
+    text-wrap: pretty;
+  }
 
-/* Fokus keyboard selalu terlihat (a11y, bukan opsional). */
-:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
-  border-radius: var(--radius-control);
+  /* Fokus keyboard selalu terlihat (a11y, bukan opsional).
+
+     JANGAN menetapkan border-radius di sini: aturan tanpa layer
+     mengalahkan utility Tailwind, sehingga `rounded-full` pada
+     tombol bulat akan tertimpa jadi kotak begitu difokus dengan
+     keyboard. Cukup garis luar; bentuk elemennya urusan masing-masing
+     komponen. */
+  :focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
 }
 
 /* Skip link tersembunyi sampai difokus. */
@@ -479,33 +496,43 @@ p {
   left: 0;
 }
 
-/* Scrollbar tipis 6px dengan warna referensi Live Oak. */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: #d6d3d1 transparent;
-}
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: #fafaf9;
-}
-::-webkit-scrollbar-thumb {
-  background-color: #d6d3d1;
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background-color: #a8a29e;
-}
-.dark ::-webkit-scrollbar-track {
-  background: #171412;
-}
-.dark ::-webkit-scrollbar-thumb {
-  background-color: #44403c;
-}
-.dark * {
-  scrollbar-color: #44403c transparent;
+/* Scrollbar tipis 6px dengan warna referensi Live Oak.
+
+   PENTING: aturan ini HARUS berada di dalam @layer base. Aturan CSS
+   yang ditulis di luar layer selalu menang atas aturan ber-layer,
+   apa pun kekhususan (specificity) dan urutannya. Karena utility
+   Tailwind ada di @layer utilities, menulis `* { scrollbar-width: thin }`
+   di luar layer akan membuat kelas seperti `[scrollbar-width:none]`
+   tidak pernah berlaku - bilah gulir carousel jadi tetap terlihat.
+   Dengan @layer base, utility Tailwind bisa menimpanya seperti biasa. */
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #d6d3d1 transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #fafaf9;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: #d6d3d1;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: #a8a29e;
+  }
+  .dark ::-webkit-scrollbar-track {
+    background: #171412;
+  }
+  .dark ::-webkit-scrollbar-thumb {
+    background-color: #44403c;
+  }
+  .dark * {
+    scrollbar-color: #44403c transparent;
+  }
 }
 
 /* Pemilihan teks: hijau emerald lembut, seperti referensi. */
@@ -516,85 +543,126 @@ p {
 
 /* =============================================================
    Gerak: hanya transform/opacity, dibatalkan saat reduced-motion.
+
+   Kelas-kelas di bawah sengaja dimasukkan ke @layer components.
+   Alasannya sama seperti blok dasar di atas: aturan TANPA layer akan
+   menang atas utility Tailwind. `.reveal` menyetel opacity dan
+   transform, jadi bila ditulis di luar layer ia akan membajak
+   utility seperti `opacity-70` atau `translate-y-2` pada elemen yang
+   sama. Di dalam @layer components, utility tetap bisa menimpanya.
    ============================================================= */
-@keyframes pm-rise {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 10px, 0);
+@layer components {
+  @keyframes pm-rise {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 10px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
   }
-  to {
+  @keyframes pm-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .animate-rise {
+    animation: pm-rise 0.42s var(--ease-out-soft) both;
+  }
+  .animate-fade-in {
+    animation: pm-fade 0.28s var(--ease-out-soft) both;
+  }
+
+  /* -------------------------------------------------------------
+     Reveal saat masuk viewport (referensi Live Oak).
+
+     Keadaan awal opacity 0 + translateY(30px); begitu elemen masuk
+     layar, Intersection Observer menambahkan kelas .active. Waktunya
+     memakai cubic-bezier persis dari referensi.
+
+     PENTING: bila JavaScript mati atau observer gagal, elemen harus
+     tetap terlihat. Karena itu keadaan awal HANYA disembunyikan bila
+     root punya kelas .js-reveal (dipasang oleh skrip kecil di
+     main.jsx). Tanpa kelas itu, .reveal tampil normal.
+     ------------------------------------------------------------- */
+  .reveal {
     opacity: 1;
-    transform: translate3d(0, 0, 0);
+    transform: none;
   }
-}
-@keyframes pm-fade {
-  from {
+  .js-reveal .reveal {
     opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+    will-change: opacity, transform;
   }
-  to {
+  .js-reveal .reveal.active {
     opacity: 1;
-  }
-}
-
-.animate-rise {
-  animation: pm-rise 0.42s var(--ease-out-soft) both;
-}
-.animate-fade-in {
-  animation: pm-fade 0.28s var(--ease-out-soft) both;
-}
-
-/* ---------------------------------------------------------------
-   Reveal saat masuk viewport (referensi Live Oak).
-
-   Keadaan awal opacity 0 + translateY(30px); begitu elemen masuk
-   layar, Intersection Observer menambahkan kelas .active. Waktunya
-   memakai cubic-bezier persis dari referensi.
-
-   PENTING: bila JavaScript mati atau observer gagal, elemen harus
-   tetap terlihat. Karena itu keadaan awal HANYA disembunyikan bila
-   root punya kelas .js-reveal (dipasang oleh skrip kecil di
-   main.jsx). Tanpa kelas itu, .reveal tampil normal.
-   --------------------------------------------------------------- */
-.reveal {
-  opacity: 1;
-  transform: none;
-}
-.js-reveal .reveal {
-  opacity: 0;
-  transform: translateY(30px);
-  transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
-  will-change: opacity, transform;
-}
-.js-reveal .reveal.active {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* ---------------------------------------------------------------
-   Kartu melayang (referensi Live Oak).
-   --------------------------------------------------------------- */
-@keyframes float {
-  0%,
-  100% {
     transform: translateY(0);
   }
-  50% {
-    transform: translateY(-10px);
+
+  /* -------------------------------------------------------------
+     Kartu melayang (referensi Live Oak).
+     ------------------------------------------------------------- */
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+  .animate-float-delayed {
+    animation: float 6s ease-in-out 1.5s infinite;
+  }
+
+  /* Topeng gambar melengkung (referensi Live Oak). Sengaja disediakan
+     sebagai kelas terpisah; sebagian gambar memakai object-cover +
+     overlay gradient, sama seperti berkas sumber. */
+  .image-mask {
+    -webkit-mask-image: radial-gradient(120% 120% at 70% 30%, #000 60%, transparent 100%);
+    mask-image: radial-gradient(120% 120% at 70% 30%, #000 60%, transparent 100%);
+  }
+
+  /* Overlay tekstur: hanya pada layer fixed pointer-events-none. */
+  .grain-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-toast);
+    pointer-events: none;
+    opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .dark .grain-overlay {
+    opacity: 0.04;
+  }
+
+  /* Ruang bawah ekstra agar konten tidak tertutup bottom nav.
+     HANYA berlaku di ponsel/tablet - di layar besar navigasi
+     berpindah ke header sehingga ruang ekstra tidak diperlukan. */
+  .pb-nav {
+    padding-bottom: 2.5rem;
   }
 }
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-.animate-float-delayed {
-  animation: float 6s ease-in-out 1.5s infinite;
-}
 
-/* Topeng gambar melengkung (referensi Live Oak). Sengaja disediakan
-   sebagai kelas terpisah; sebagian gambar memakai object-cover +
-   overlay gradient, sama seperti berkas sumber. */
-.image-mask {
-  -webkit-mask-image: radial-gradient(120% 120% at 70% 30%, #000 60%, transparent 100%);
-  mask-image: radial-gradient(120% 120% at 70% 30%, #000 60%, transparent 100%);
+/* Animasi lembar bawah (bottom sheet) khusus aplikasi pasien. */
+@keyframes pm-naik {
+  from {
+    transform: translateY(2%);
+    opacity: 0.6;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -610,33 +678,6 @@ p {
   .js-reveal .reveal {
     opacity: 1;
     transform: none;
-  }
-}
-
-/* =============================================================
-   Overlay tekstur: hanya pada layer fixed pointer-events-none.
-   ============================================================= */
-.grain-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: var(--z-toast);
-  pointer-events: none;
-  opacity: 0.025;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-.dark .grain-overlay {
-  opacity: 0.04;
-}
-
-/* Animasi lembar bawah (bottom sheet) khusus aplikasi pasien. */
-@keyframes pm-naik {
-  from {
-    transform: translateY(2%);
-    opacity: 0.6;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
   }
 }
 
@@ -676,15 +717,12 @@ p {
   max-width: 760px;
 }
 
-/* Ruang bawah ekstra agar konten tidak tertutup bottom nav.
-   HANYA berlaku di ponsel/tablet - di layar besar navigasi
-   berpindah ke header sehingga ruang ekstra tidak diperlukan. */
-.pb-nav {
-  padding-bottom: 2.5rem;
-}
-
-@media (max-width: 1023px) {
-  .pb-nav {
-    padding-bottom: calc(5.25rem + env(safe-area-inset-bottom));
+/* Ruang bawah ekstra di ponsel/tablet (bottom nav). Ditaruh di
+   @layer components agar utility `pb-*` tetap bisa menimpanya. */
+@layer components {
+  @media (max-width: 1023px) {
+    .pb-nav {
+      padding-bottom: calc(5.25rem + env(safe-area-inset-bottom));
+    }
   }
 }

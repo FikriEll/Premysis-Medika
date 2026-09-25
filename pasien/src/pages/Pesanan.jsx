@@ -94,7 +94,7 @@ export default function Pesanan() {
       )}
 
       <a
-        href="https://wa.me/6281211112222?text=Halo%2C%20saya%20ingin%20menanyakan%20pesanan%20saya."
+        href="https://wa.me/6281317739371?text=Halo%2C%20saya%20ingin%20menanyakan%20pesanan%20saya."
         target="_blank"
         rel="noreferrer"
         className="flex items-center gap-3 rounded-[var(--radius-card)] border border-hairline surface-raised px-4 py-3.5"

@@ -172,7 +172,7 @@ export default function Profil() {
         </Kartu>
 
         <a
-          href="https://wa.me/6281211112222?text=Halo%2C%20saya%20pelanggan%20Klinik%20Premysis%20Medika%20dan%20butuh%20bantuan."
+          href="https://wa.me/6281317739371?text=Halo%2C%20saya%20pelanggan%20Klinik%20Premysis%20Medika%20dan%20butuh%20bantuan."
           target="_blank"
           rel="noreferrer"
           className="mt-2.5 flex items-center gap-3 rounded-[var(--radius-card)] border border-hairline surface-raised px-4 py-4"
@@ -182,7 +182,7 @@ export default function Profil() {
           </span>
           <span className="min-w-0 flex-1">
             <span className="block text-[17px] font-semibold text-primary">Hubungi Kami</span>
-            <span className="block text-[15.5px] text-secondary">0812-1111-2222</span>
+            <span className="block text-[15.5px] text-secondary">081317739371</span>
           </span>
           <IconPanahKanan size={18} weight="bold" className="shrink-0 text-muted" />
         </a>

@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../lib/api'
 import { Kartu, KepalaHalaman, JudulSeksi, Tombol, Kosong, Memuat, Galat, Lencana } from '../components/ui'
-import { IconBuku, IconTanggal, IconObat } from '../components/Icons'
+import { IconBuku } from '../components/Icons'
 import { IlustrasiBlog, IlustrasiKosong } from '../components/Ilustrasi'
-import { fmtTanggal } from '../../../shared/format'
+import KartuArtikel from '../components/KartuArtikel'
 
 // Halaman Blog / Berita.
 //
@@ -71,36 +71,14 @@ export default function Blog() {
       ) : (
         <section>
           <JudulSeksi>Artikel Terbaru</JudulSeksi>
-          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {data.map((p) => (
-              <li key={p.id}>
-                <button
-                  type="button"
-                  onClick={() => nav(`/blog/${p.slug}`)}
-                  className="flex h-full w-full flex-col overflow-hidden rounded-[var(--radius-card)] border border-hairline surface-raised text-left transition-colors active:surface-hover"
-                >
-                  <span className="flex h-36 w-full shrink-0 items-center justify-center overflow-hidden permukaan-sky">
-                    {p.cover_image ? (
-                      <img src={p.cover_image} alt="" className="h-full w-full object-cover" />
-                    ) : (
-                      <IconObat size={34} />
-                    )}
-                  </span>
-                  <span className="flex min-w-0 flex-1 flex-col gap-2 p-4">
-                    <span className="block text-[17.5px] font-semibold leading-snug text-primary">
-                      {p.title}
-                    </span>
-                    {p.excerpt && (
-                      <span className="line-clamp-2 block text-[15.5px] leading-relaxed text-secondary">
-                        {p.excerpt}
-                      </span>
-                    )}
-                    <span className="mt-auto flex items-center gap-1.5 text-[14.5px] text-muted">
-                      <IconTanggal size={15} />
-                      <span className="numeric">{fmtTanggal(p.published_at)}</span>
-                    </span>
-                  </span>
-                </button>
+          <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {data.map((p, i) => (
+              <li key={p.id} className="reveal">
+                <KartuArtikel
+                  artikel={p}
+                  indeks={i}
+                  onBuka={() => nav(`/blog/${p.slug}`)}
+                />
               </li>
             ))}
           </ul>

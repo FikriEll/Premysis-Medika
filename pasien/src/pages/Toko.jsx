@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useStore } from '../lib/store'
 import { Kartu, InputCari, Tombol, Kosong, Memuat, Galat } from '../components/ui'
 import { KartuProduk } from '../components/kartu'
+import CarouselProduk from '../components/CarouselProduk'
 import { IconKeranjang, IconObat, IconPerawatan, IconHati, IconBayi, IconToko, IconPesanan } from '../components/Icons'
 import { IlustrasiKeranjang } from '../components/Ilustrasi'
 
@@ -34,6 +35,7 @@ export default function Toko() {
   const {
     kategori, daftarProduk, metaProduk, memuatProduk, ambilProduk,
     tambahKeranjang, jumlahKeranjang, jumlahDiKeranjang, beriToast, user,
+    produkPopuler,
   } = useStore()
 
   const [q, setQ] = useState('')
@@ -148,6 +150,19 @@ export default function Toko() {
         </section>
       )}
 
+      {/* Paling laris: carousel geser, hanya saat belum menyaring apa pun */}
+      {tampilKategori && produkPopuler.length > 0 && (
+        <CarouselProduk
+          judul="Paling Laris Minggu Ini"
+          produk={produkPopuler}
+          labelLihatSemua="Semua produk"
+          onLihatSemua={() => pilihKategori('')}
+          onBuka={(p) => nav(`/produk/${p.slug}`)}
+          onTambah={tambah}
+          jumlahDiKeranjang={(p) => jumlahDiKeranjang(p.id)}
+        />
+      )}
+
       {/* Pencarian + urutan: berdampingan di layar lebar */}
       <div className="grid gap-3 sm:grid-cols-[1fr_240px] sm:items-end">
         <InputCari
@@ -155,7 +170,6 @@ export default function Toko() {
           onChange={(e) => setQ(e.target.value)}
           placeholder="Cari nama obat atau produk..."
         />
-
         <label className="block">
           <span className="mb-1.5 block text-[15.5px] font-medium text-secondary">Urutkan</span>
           <select

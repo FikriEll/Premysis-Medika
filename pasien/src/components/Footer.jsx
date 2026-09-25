@@ -42,10 +42,10 @@ export default function Footer() {
 
   const nama = pengaturan?.site_name || 'Klinik Premysis Medika'
   const tagline = pengaturan?.site_tagline || 'Obat lengkap, cepat & terpercaya'
-  const telepon = pengaturan?.phone || '0812-1111-2222'
-  const whatsapp = (pengaturan?.whatsapp || '6281211112222').replace(/[^0-9]/g, '')
+  const telepon = pengaturan?.phone || '081317739371'
+  const whatsapp = (pengaturan?.whatsapp || '6281317739371').replace(/[^0-9]/g, '')
   const email = pengaturan?.email || 'info@klinikpremysis.test'
-  const alamat = pengaturan?.address || 'Jl. Kesehatan Raya No. 45, Depok, Jawa Barat'
+  const alamat = pengaturan?.address || 'Kp. Cibitung Bedeng RT 05/04, Kel. Telaga Asih, Kec. Cikarang Barat, Kab. Bekasi, Jawa Barat 17530'
   const jam = pengaturan?.opening_hours || 'Senin - Sabtu: 08.00 - 21.00 WIB'
 
   return (

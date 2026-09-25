@@ -86,6 +86,11 @@ import {
   BadgeCheck,
   MessagesSquare,
   CirclePlus,
+  Share2,
+  ArrowUpRight,
+  Users,
+  Ruler,
+  ChevronDown,
 } from 'lucide-react'
 
 const STROKE = { regular: 2, bold: 2.4 }
@@ -200,5 +205,10 @@ export const IconTambahBulat = make(CirclePlus)
 export const IconTentang = make(Info)
 
 // --- Ikon tambahan untuk tampilan bergaya Live Oak ---
-export const IconPanahMiring = make(ArrowRight)
-export const IconPanahTurun = make(ChevronRight)
+export const IconPanahMiring = make(ArrowUpRight)
+// ChevronDown: penanda akordeon yang mengarah ke bawah saat tertutup.
+export const IconPanahTurun = make(ChevronDown)
+// Ikon baru untuk kartu produk & artikel bergaya referensi.
+export const IconBagikan = make(Share2)
+export const IconPengguna = make(Users)
+export const IconPenggaris = make(Ruler)

@@ -245,7 +245,7 @@ export default function Masuk() {
         subjudul="Petugas apotek akan membantu Anda membuat password baru."
         footer={
           <a
-            href="https://wa.me/6281211112222?text=Halo%2C%20saya%20lupa%20password%20website%20Klinik%20Premysis%20Medika."
+            href="https://wa.me/6281317739371?text=Halo%2C%20saya%20lupa%20password%20website%20Klinik%20Premysis%20Medika."
             target="_blank"
             rel="noreferrer"
             className="inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-[var(--radius-control)] bg-accent px-5 text-[18px] font-semibold text-[var(--accent-contrast)]"

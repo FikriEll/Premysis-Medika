@@ -1,8 +1,9 @@
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../lib/store'
 import { fmtRupiah } from '../../../shared/format'
+import { gambarProduk } from '../lib/gambar'
 import { Kartu, Tombol, Kosong, PengaturJumlah, TombolIkon, JudulSeksi, BarisInfo } from '../components/ui'
-import { IconHapus, IconToko, IconProduk, IconPeringatan } from '../components/Icons'
+import { IconHapus, IconToko, IconPeringatan } from '../components/Icons'
 import { IlustrasiKeranjang } from '../components/Ilustrasi'
 
 // F-08 Keranjang.
@@ -68,7 +69,7 @@ export default function Keranjang() {
               <Kartu className="space-y-3.5">
                 <div className="flex items-start gap-4">
                   <span className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-[var(--radius-control)] permukaan-1 text-accent">
-                    {p.image ? <img src={p.image} alt="" className="h-full w-full object-cover" /> : <IconProduk size={32} weight="bold" />}
+                    <img src={gambarProduk(p)} alt="" loading="lazy" className="h-full w-full object-cover" />
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="text-[18px] font-semibold leading-snug text-primary">{p.name}</p>

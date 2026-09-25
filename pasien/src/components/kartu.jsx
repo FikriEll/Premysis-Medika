@@ -10,8 +10,9 @@
 import { fmtRupiah, fmtTanggal } from '../../../shared/format'
 import { Kartu, Lencana, Tombol, BarisInfo } from './ui'
 import { statusPesanan, statusBayar, labelMetodeBayar } from '../lib/status'
+import { gambarProduk } from '../lib/gambar'
 import {
-  IconProduk, IconPeringatan, IconKeranjang, IconPesanan,
+  IconPeringatan, IconKeranjang, IconPesanan,
   IconTanggal, IconKirim, IconLokasi, IconObat,
 } from './Icons'
 
@@ -35,11 +36,7 @@ export function KartuProduk({ produk, onBuka, onTambah, boleh = true, jumlahDiKe
           aria-label={`Lihat detail ${produk.name}`}
           className="flex h-36 w-full shrink-0 items-center justify-center overflow-hidden rounded-t-[var(--radius-card)] permukaan-1 text-accent"
         >
-          {produk.image ? (
-            <img src={produk.image} alt="" className="h-full w-full object-cover" />
-          ) : (
-            <IconProduk size={40} />
-          )}
+          <img src={gambarProduk(produk)} alt="" loading="lazy" className="h-full w-full object-cover" />
         </button>
 
         <div className="flex flex-1 flex-col p-4">
@@ -97,11 +94,7 @@ export function KartuProduk({ produk, onBuka, onTambah, boleh = true, jumlahDiKe
           aria-label={`Lihat detail ${produk.name}`}
           className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[var(--radius-control)] permukaan-1 text-accent"
         >
-          {produk.image ? (
-            <img src={produk.image} alt="" className="h-full w-full object-cover" />
-          ) : (
-            <IconProduk size={28} />
-          )}
+          <img src={gambarProduk(produk)} alt="" loading="lazy" className="h-full w-full object-cover" />
         </button>
 
         <button

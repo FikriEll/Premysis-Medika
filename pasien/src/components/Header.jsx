@@ -99,7 +99,7 @@ export default function Header() {
           : '')
   const beranda = pathname === '/'
 
-  const telepon = (pengaturan?.phone || '0812-1111-2222').replace(/[^0-9+]/g, '')
+  const telepon = (pengaturan?.phone || '081317739371').replace(/[^0-9+]/g, '')
 
   const kirimCari = (e) => {
     e.preventDefault()
@@ -135,9 +135,15 @@ export default function Header() {
                 <Merek />
               </Link>
             ) : (
-              <h1 className="min-w-0 flex-1 truncate text-[19px] font-bold tracking-tight text-heading">
+              /* Judul halaman di header ponsel.
+                 Memakai <p>, BUKAN <h1>: setiap halaman sudah punya
+                 satu <h1> di dalam isinya, dan dua <h1> membuat
+                 pembaca layar bingung menentukan topik halaman.
+                 Kelas font-serif dipertahankan supaya tampilannya
+                 tidak berubah. */
+              <p className="min-w-0 flex-1 truncate font-serif text-[19px] font-bold tracking-tight text-heading">
                 {judul}
-              </h1>
+              </p>
             )}
           </div>
 
@@ -267,7 +273,7 @@ export default function Header() {
                   className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-[15.5px] font-medium text-secondary transition-colors hover:text-accent"
                 >
                   <IconTelepon size={18} weight="bold" />
-                  <span className="numeric hidden xl:inline">{pengaturan?.phone || '0812-1111-2222'}</span>
+                  <span className="numeric hidden xl:inline">{pengaturan?.phone || '081317739371'}</span>
                 </a>
                 <button
                   type="button"

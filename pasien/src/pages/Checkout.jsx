@@ -184,7 +184,7 @@ export default function Checkout() {
       if (mode === 'kirim') payload.address_id = idKirim
       else {
         payload.recipient_name = ringkasan?.addresses?.[0]?.recipient_name || 'Ambil di Klinik'
-        payload.recipient_phone = ringkasan?.addresses?.[0]?.phone || '081211112222'
+        payload.recipient_phone = ringkasan?.addresses?.[0]?.phone || '081317739371'
         payload.full_address = 'Ambil sendiri di Klinik Premysis Medika'
       }
 
@@ -271,9 +271,9 @@ export default function Checkout() {
             <div className="rounded-[var(--radius-control)] surface-sunken px-4 py-3.5">
               <p className="text-[16px] font-semibold text-primary">Alamat pengambilan</p>
               <p className="mt-1 text-[16px] leading-relaxed text-secondary">
-                Klinik Premysis Medika — Jl. Kesehatan Raya No. 45, Depok
+                Klinik Premysis Medika — Kp. Cibitung Bedeng, Telaga Asih, Cikarang Barat, Bekasi
               </p>
-              <p className="numeric mt-1 text-[16px] text-secondary">0812-1111-2222</p>
+              <p className="numeric mt-1 text-[16px] text-secondary">081317739371</p>
             </div>
           )}
 
@@ -314,7 +314,7 @@ export default function Checkout() {
                   </Kolom>
                   <div className="grid grid-cols-2 gap-3">
                     <Kolom label="Kota" htmlFor="ct">
-                      <Input id="ct" value={form.city} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} placeholder="Depok" />
+                      <Input id="ct" value={form.city} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} placeholder="Cikarang" />
                     </Kolom>
                     <Kolom label="Provinsi" htmlFor="pv">
                       <Input id="pv" value={form.province} onChange={(e) => setForm((f) => ({ ...f, province: e.target.value }))} placeholder="Jawa Barat" />
