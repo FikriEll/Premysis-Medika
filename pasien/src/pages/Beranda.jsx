@@ -88,7 +88,7 @@ const LANGKAH_DIGITAL = [
 function susunSlide(promo) {
   if (promo.length > 0) {
     const warna = ['permukaan-sambutan', 'permukaan-mint', 'permukaan-sky', 'permukaan-peach', 'permukaan-honey']
-    const gambar = [
+    const gambarDefault = [
       'https://images.unsplash.com/photo-1587854692152-cbe660dbde0f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80', // promo vitamin
       'https://images.unsplash.com/photo-1631549916768-4119b2e5f926?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80', // promo obat
       'https://images.unsplash.com/photo-1576602976047-174e57a47881?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80', // apoteker
@@ -102,7 +102,7 @@ function susunSlide(promo) {
       isi: p.description || `Pakai kode ${p.code} saat membayar dan dapatkan potongan harga.`,
       aksi: 'Pakai Promo',
       warna: warna[i % warna.length],
-      gambar: gambar[i % gambar.length],
+      gambar: p.gambar || gambarDefault[i % gambarDefault.length],
       kePromo: true,
       kode: p.code,
     }))
