@@ -314,7 +314,27 @@ async function tanganiApi(req, res, url) {
       if (p.password !== body.password) return kirim(res, 401, { pesan: 'Password salah.' })
       // Password tidak pernah dikirim balik ke aplikasi.
       const { password: _sandi, ...pasienAman } = p
-      return kirim(res, 200, pasienAman)
+      return kirim(res, 200, { token: `token_${p.id}`, user: pasienAman })
+    }
+
+    // Alias untuk pasien app yang pakai /auth/login (bukan /auth/login-pasien)
+    if (bagian[1] === 'login' && metode === 'POST' && !bagian[2]) {
+      const identitas = String(body.identifier || body.identitas || body.email || body.no_hp || '').trim()
+      if (!identitas) {
+        return kirim(res, 400, { pesan: 'Email atau nomor HP wajib diisi.' })
+      }
+      const angka = (s) => String(s || '').replace(/[^0-9]/g, '')
+      const angkaInput = angka(identitas)
+      const p = db.pasien.find(
+        (x) =>
+          String(x.email).toLowerCase() === identitas.toLowerCase() ||
+          (angkaInput.length >= 8 && angka(x.no_wa) === angkaInput),
+      )
+      if (!p) return kirim(res, 404, { pesan: 'Email/nomor HP atau kata sandi tidak cocok.' })
+      if (!p.status_aktif) return kirim(res, 403, { pesan: 'Akun Anda tidak aktif. Hubungi klinik.' })
+      if (p.password !== body.password) return kirim(res, 401, { pesan: 'Email/nomor HP atau kata sandi tidak cocok.' })
+      const { password: _sandi, ...pasienAman } = p
+      return kirim(res, 200, { token: `token_${p.id}`, user: pasienAman })
     }
     // Admin login (R-02/R-03)
     if (bagian[1] === 'login-admin' && metode === 'POST') {
