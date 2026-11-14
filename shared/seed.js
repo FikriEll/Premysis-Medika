@@ -95,18 +95,18 @@ export const kategori = [
 ]
 
 export const produk = [
-  { id: 1, id_kategori: 1, nama: 'Paracetamol 500mg', deskripsi: 'Obat penurun demam & pereda nyeri', harga: 12000, stok: 120, satuan: 'strip', stok_minimum: 20, status: 'Aktif', wajib_resep: false },
-  { id: 2, id_kategori: 1, nama: 'Amoxicillin 500mg', deskripsi: 'Antibiotik (wajib resep dokter)', harga: 35000, stok: 45, satuan: 'strip', stok_minimum: 15, status: 'Aktif', wajib_resep: true },
-  { id: 3, id_kategori: 1, nama: 'OBH Combi Batuk', deskripsi: 'Sirup obat batuk', harga: 22000, stok: 8, satuan: 'botol', stok_minimum: 10, status: 'Aktif', wajib_resep: false },
-  { id: 4, id_kategori: 2, nama: 'Folamil Genio', deskripsi: 'Vitamin ibu hamil & menyusui', harga: 55000, stok: 60, satuan: 'box', stok_minimum: 15, status: 'Aktif', wajib_resep: false },
-  { id: 5, id_kategori: 2, nama: 'Vitamin D3 1000 IU', deskripsi: 'Suplemen vitamin D', harga: 48000, stok: 32, satuan: 'botol', stok_minimum: 10, status: 'Aktif', wajib_resep: false },
-  { id: 6, id_kategori: 2, nama: 'Sangobion', deskripsi: 'Suplemen penambah darah', harga: 32000, stok: 5, satuan: 'strip', stok_minimum: 15, status: 'Aktif', wajib_resep: false },
-  { id: 7, id_kategori: 3, nama: 'Minyak Telon Bayi', deskripsi: 'Minyak penghangat bayi', harga: 18000, stok: 90, satuan: 'botol', stok_minimum: 20, status: 'Aktif', wajib_resep: false },
-  { id: 8, id_kategori: 3, nama: 'Diapers Bayi M', deskripsi: 'Popok bayi ukuran M', harga: 65000, stok: 40, satuan: 'pack', stok_minimum: 15, status: 'Aktif', wajib_resep: false },
-  { id: 9, id_kategori: 4, nama: 'Termometer Digital', deskripsi: 'Termometer digital badan', harga: 75000, stok: 18, satuan: 'pcs', stok_minimum: 5, status: 'Aktif', wajib_resep: false },
-  { id: 10, id_kategori: 4, nama: 'Masker Medis 3ply (50pcs)', deskripsi: 'Masker medis sekali pakai', harga: 40000, stok: 3, satuan: 'box', stok_minimum: 10, status: 'Aktif', wajib_resep: false },
-  { id: 11, id_kategori: 1, nama: 'Antasida Suspensi', deskripsi: 'Obat maag', harga: 25000, stok: 0, satuan: 'botol', stok_minimum: 10, status: 'Nonaktif', wajib_resep: false },
-  { id: 12, id_kategori: 3, nama: 'Breast Pad (30pcs)', deskripsi: 'Pelindung payudara ibu menyusui', harga: 38000, stok: 25, satuan: 'box', stok_minimum: 10, status: 'Aktif', wajib_resep: false },
+  { id: 1, id_kategori: 1, nama: 'Paracetamol 500mg', deskripsi: 'Obat penurun demam & pereda nyeri', harga: 12000, stok: 120, satuan: 'strip', stok_minimum: 20, status: 'Aktif', wajib_resep: false, image: null },
+  { id: 2, id_kategori: 1, nama: 'Amoxicillin 500mg', deskripsi: 'Antibiotik (wajib resep dokter)', harga: 35000, stok: 45, satuan: 'strip', stok_minimum: 15, status: 'Aktif', wajib_resep: true, image: null },
+  { id: 3, id_kategori: 1, nama: 'OBH Combi Batuk', deskripsi: 'Sirup obat batuk', harga: 22000, stok: 8, satuan: 'botol', stok_minimum: 10, status: 'Aktif', wajib_resep: false, image: null },
+  { id: 4, id_kategori: 2, nama: 'Folamil Genio', deskripsi: 'Vitamin ibu hamil & menyusui', harga: 55000, stok: 60, satuan: 'box', stok_minimum: 15, status: 'Aktif', wajib_resep: false, image: null },
+  { id: 5, id_kategori: 2, nama: 'Vitamin D3 1000 IU', deskripsi: 'Suplemen vitamin D', harga: 48000, stok: 32, satuan: 'botol', stok_minimum: 10, status: 'Aktif', wajib_resep: false, image: null },
+  { id: 6, id_kategori: 2, nama: 'Sangobion', deskripsi: 'Suplemen penambah darah', harga: 32000, stok: 5, satuan: 'strip', stok_minimum: 15, status: 'Aktif', wajib_resep: false, image: null },
+  { id: 7, id_kategori: 3, nama: 'Minyak Telon Bayi', deskripsi: 'Minyak penghangat bayi', harga: 18000, stok: 90, satuan: 'botol', stok_minimum: 20, status: 'Aktif', wajib_resep: false, image: null },
+  { id: 8, id_kategori: 3, nama: 'Diapers Bayi M', deskripsi: 'Popok bayi ukuran M', harga: 65000, stok: 40, satuan: 'pack', stok_minimum: 15, status: 'Aktif', wajib_resep: false, image: null },
+  { id: 9, id_kategori: 4, nama: 'Termometer Digital', deskripsi: 'Termometer digital badan', harga: 75000, stok: 18, satuan: 'pcs', stok_minimum: 5, status: 'Aktif', wajib_resep: false, image: null },
+  { id: 10, id_kategori: 4, nama: 'Masker Medis 3ply (50pcs)', deskripsi: 'Masker medis sekali pakai', harga: 40000, stok: 3, satuan: 'box', stok_minimum: 10, status: 'Aktif', wajib_resep: false, image: null },
+  { id: 11, id_kategori: 1, nama: 'Antasida Suspensi', deskripsi: 'Obat maag', harga: 25000, stok: 0, satuan: 'botol', stok_minimum: 10, status: 'Nonaktif', wajib_resep: false, image: null },
+  { id: 12, id_kategori: 3, nama: 'Breast Pad (30pcs)', deskripsi: 'Pelindung payudara ibu menyusui', harga: 38000, stok: 25, satuan: 'box', stok_minimum: 10, status: 'Aktif', wajib_resep: false, image: null },
 ]
 
 export const stokMutasi = [
@@ -184,10 +184,20 @@ export const logAktivitas = [
   { id: 4, id_pengguna: 1, aksi: 'Mencatat pemeriksaan', entitas: 'Pemeriksaan', id_entitas: 3, waktu: '2026-04-19 10:00' },
 ]
 
+export const promo = [
+  { id: 1, nama: 'Vitamin Sehat', deskripsi: 'Diskon 20% untuk semua vitamin dan suplemen', kode_promo: 'VITAMIN20', diskon_persen: 20, diskon_nominal: null, minimal_pembelian: 100000, tanggal_mulai: '2026-04-20', tanggal_selesai: '2026-05-20', status: 'Aktif', gambar: null, id_pengguna: 2, dibuat_tanggal: '2026-04-20 09:00' },
+  { id: 2, nama: 'Obat Murah', deskripsi: 'Potongan Rp 15.000 untuk pembelian obat', kode_promo: 'OBAT15K', diskon_persen: null, diskon_nominal: 15000, minimal_pembelian: 50000, tanggal_mulai: '2026-04-15', tanggal_selesai: '2026-04-30', status: 'Aktif', gambar: null, id_pengguna: 2, dibuat_tanggal: '2026-04-15 10:30' },
+]
+
+export const budget = [
+  { id: 1, bulan: '2026-04', modal_awal: 5000000, stok_nilai: 3200000, penjualan_bruto: 852000, penjualan_bersih: 735000, pengeluaran: 250000, laba_kotor: 602000, laba_bersih: 352000, catatan: 'Bulan Apr stabil' },
+  { id: 2, bulan: '2026-03', modal_awal: 5000000, stok_nilai: 2950000, penjualan_bruto: 720000, penjualan_bersih: 620000, pengeluaran: 180000, laba_kotor: 540000, laba_bersih: 360000, catatan: '' },
+]
+
 export const collections = {
   users, pasien, bayi, jenisVaksin, jadwalVaksin, appointment,
   pemeriksaan, kategori, produk, stokMutasi, resep, pesanan,
-  pembayaran, notifikasi, logAktivitas,
+  pembayaran, notifikasi, logAktivitas, promo, budget,
 }
 
 export function seedDatabase() {

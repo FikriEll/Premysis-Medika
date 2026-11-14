@@ -9,7 +9,7 @@ import { useData } from '../context/DataContext'
 import { IconPlus, IconEdit, IconProduk, IconTrash, IconAlert } from '../components/Icons'
 
 const emptyForm = {
-  nama: '', id_kategori: 1, deskripsi: '', harga: 0, stok: 0, satuan: 'pcs', stok_minimum: 10, status: 'Aktif', wajib_resep: false,
+  nama: '', id_kategori: 1, deskripsi: '', harga: 0, stok: 0, satuan: 'pcs', stok_minimum: 10, status: 'Aktif', wajib_resep: false, image: null, image_preview: null,
 }
 
 export default function Produk() {
@@ -40,6 +40,17 @@ export default function Produk() {
     setModal({ mode: 'edit', data: p })
   }
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value })
+
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (evt) => {
+        setForm({ ...form, image: file, image_preview: evt.target.result })
+      }
+      reader.readAsDataURL(file)
+    }
+  }
 
   const save = async () => {
     if (!form.nama) return
@@ -145,6 +156,31 @@ export default function Produk() {
         }
       >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            {form.image_preview && (
+              <div className="mb-4 flex items-center gap-3">
+                <img src={form.image_preview} alt="Preview" className="h-20 w-20 rounded-[var(--radius-control)] border border-hairline object-cover" />
+                <div>
+                  <p className="text-[13.5px] font-medium text-primary">{form.image?.name}</p>
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, image: null, image_preview: null })}
+                    className="text-[12px] text-signal-rose hover:underline"
+                  >
+                    Hapus gambar
+                  </button>
+                </div>
+              </div>
+            )}
+            <Field label="Gambar Produk">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="block w-full rounded-[var(--radius-control)] border border-hairline px-3 py-2 text-[13.5px] text-secondary file:mr-2 file:border-0 file:rounded file:bg-accent file:px-2.5 file:py-1 file:text-[13px] file:font-medium file:text-[var(--accent-contrast)] hover:border-accent"
+              />
+            </Field>
+          </div>
           <div className="sm:col-span-2">
             <Field label="Nama Produk" required>
               <Input value={form.nama} onChange={set('nama')} placeholder="Nama produk/obat" />

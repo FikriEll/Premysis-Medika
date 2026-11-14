@@ -233,6 +233,61 @@ async function tanganiApi(req, res, url) {
     return kirim(res, 200, db)
   }
 
+  // --- Home page katalog (pasien app) ---
+  if (bagian.length === 1 && bagian[0] === 'home' && metode === 'GET') {
+    const promoAktif = db.promo.filter((p) => p.status === 'Aktif').map((p) => ({
+      id: p.id,
+      name: p.nama,
+      description: p.deskripsi,
+      code: p.kode_promo,
+      type: p.diskon_persen ? 'percent' : 'nominal',
+      value: p.diskon_persen || p.diskon_nominal,
+      min_purchase: p.minimal_pembelian,
+      start_date: p.tanggal_mulai,
+      end_date: p.tanggal_selesai,
+    }))
+    return kirim(res, 200, {
+      categories: db.kategori,
+      featured_products: db.produk.filter((p) => p.status === 'Aktif').slice(0, 6),
+      latest_products: db.produk.filter((p) => p.status === 'Aktif').slice(0, 6),
+      popular_products: db.produk.filter((p) => p.status === 'Aktif').slice(0, 6),
+      promos: promoAktif,
+      testimonials: [],
+      faqs: [],
+      promises: [],
+      settings: null,
+    })
+  }
+
+  // --- Promo list & validation (pasien app) ---
+  if (bagian[0] === 'promos') {
+    if (metode === 'GET') {
+      const promoAktif = db.promo.filter((p) => p.status === 'Aktif').map((p) => ({
+        id: p.id,
+        name: p.nama,
+        description: p.deskripsi,
+        code: p.kode_promo,
+        type: p.diskon_persen ? 'percent' : 'nominal',
+        value: p.diskon_persen || p.diskon_nominal,
+        min_purchase: p.minimal_pembelian,
+        start_date: p.tanggal_mulai,
+        end_date: p.tanggal_selesai,
+      }))
+      return kirim(res, 200, { data: promoAktif })
+    }
+    if (bagian[1] === 'validate' && metode === 'POST') {
+      const { code, subtotal } = JSON.parse(isiReq)
+      const p = db.promo.find((x) => x.kode_promo === code && x.status === 'Aktif')
+      if (!p || (p.minimal_pembelian && subtotal < p.minimal_pembelian)) {
+        return kirim(res, 400, { error: 'Kode promo tidak valid atau tidak memenuhi syarat.' })
+      }
+      return kirim(res, 200, {
+        valid: true,
+        discount: p.diskon_persen ? (subtotal * p.diskon_persen) / 100 : p.diskon_nominal,
+      })
+    }
+  }
+
   // --- Autentikasi ---
   if (bagian[0] === 'auth') {
     // Pasien login (R-01)
@@ -612,6 +667,85 @@ async function tanganiApi(req, res, url) {
     return kirim(res, 200, { dibuat: dibuat.length, jadwal: dibuat })
   }
 
+  // --- Promo CRUD (admin only) ---
+  if (bagian[0] === 'promo' && metode === 'GET') {
+    return kirim(res, 200, db.promo)
+  }
+  if (bagian[0] === 'promo' && metode === 'POST') {
+    const { nama, deskripsi, kode_promo, diskon_persen, diskon_nominal, minimal_pembelian, tanggal_mulai, tanggal_selesai, id_pengguna } = body
+    if (!nama || !kode_promo) return kirim(res, 400, { pesan: 'Nama & kode promo wajib.' })
+    const baru = {
+      id: idBerikut(),
+      nama,
+      deskripsi: deskripsi || '',
+      kode_promo,
+      diskon_persen: diskon_persen || null,
+      diskon_nominal: diskon_nominal || null,
+      minimal_pembelian: minimal_pembelian || 0,
+      tanggal_mulai: tanggal_mulai || DEMO_TANGGAL,
+      tanggal_selesai: tanggal_selesai || DEMO_TANGGAL,
+      status: 'Aktif',
+      gambar: null,
+      id_pengguna,
+      dibuat_tanggal: sekarang(),
+    }
+    db.promo.push(baru)
+    catat('Buat promo', 'Promo', baru.id, id_pengguna)
+    return kirim(res, 201, baru)
+  }
+  if (bagian[0] === 'promo' && bagian[1] && metode === 'PATCH') {
+    const p = db.promo.find((x) => x.id === Number(bagian[1]))
+    if (!p) return kirim(res, 404, { pesan: 'Promo tidak ditemukan.' })
+    Object.assign(p, body)
+    catat('Ubah promo', 'Promo', p.id, body.id_pengguna)
+    return kirim(res, 200, p)
+  }
+  if (bagian[0] === 'promo' && bagian[1] && metode === 'DELETE') {
+    const idx = db.promo.findIndex((x) => x.id === Number(bagian[1]))
+    if (idx === -1) return kirim(res, 404, { pesan: 'Promo tidak ditemukan.' })
+    const hapus = db.promo.splice(idx, 1)[0]
+    catat('Hapus promo', 'Promo', hapus.id, body.id_pengguna)
+    return kirim(res, 200, hapus)
+  }
+
+  // --- Budget CRUD (admin only) ---
+  if (bagian[0] === 'budget' && metode === 'GET') {
+    return kirim(res, 200, db.budget)
+  }
+  if (bagian[0] === 'budget' && metode === 'POST') {
+    const { bulan, modal_awal, stok_nilai, penjualan_bruto, penjualan_bersih, pengeluaran, laba_kotor, laba_bersih, catatan, id_pengguna } = body
+    if (!bulan) return kirim(res, 400, { pesan: 'Bulan wajib (format: YYYY-MM).' })
+    const baru = {
+      id: idBerikut(),
+      bulan,
+      modal_awal: modal_awal || 0,
+      stok_nilai: stok_nilai || 0,
+      penjualan_bruto: penjualan_bruto || 0,
+      penjualan_bersih: penjualan_bersih || 0,
+      pengeluaran: pengeluaran || 0,
+      laba_kotor: laba_kotor || 0,
+      laba_bersih: laba_bersih || 0,
+      catatan: catatan || '',
+    }
+    db.budget.push(baru)
+    catat('Buat budget', 'Budget', baru.id, id_pengguna)
+    return kirim(res, 201, baru)
+  }
+  if (bagian[0] === 'budget' && bagian[1] && metode === 'PATCH') {
+    const b = db.budget.find((x) => x.id === Number(bagian[1]))
+    if (!b) return kirim(res, 404, { pesan: 'Budget tidak ditemukan.' })
+    Object.assign(b, body)
+    catat('Ubah budget', 'Budget', b.id, body.id_pengguna)
+    return kirim(res, 200, b)
+  }
+  if (bagian[0] === 'budget' && bagian[1] && metode === 'DELETE') {
+    const idx = db.budget.findIndex((x) => x.id === Number(bagian[1]))
+    if (idx === -1) return kirim(res, 404, { pesan: 'Budget tidak ditemukan.' })
+    const hapus = db.budget.splice(idx, 1)[0]
+    catat('Hapus budget', 'Budget', hapus.id, body.id_pengguna)
+    return kirim(res, 200, hapus)
+  }
+
   // -----------------------------------------------------------
   // CRUD generik: /api/:koleksi dan /api/:koleksi/:id
   // -----------------------------------------------------------
@@ -773,6 +907,14 @@ const server = createServer(async (req, res) => {
 server.listen(PORT, HOST, () => {
   console.log(`Premysis Medika API siap di http://${HOST}:${PORT}`)
   console.log(`  GET  /api/state            snapshot seluruh data`)
+  console.log(`  GET  /api/promo            daftar promo`)
+  console.log(`  POST /api/promo            buat promo`)
+  console.log(`  PATCH /api/promo/:id       ubah promo`)
+  console.log(`  DELETE /api/promo/:id      hapus promo`)
+  console.log(`  GET  /api/budget           daftar budget`)
+  console.log(`  POST /api/budget           buat budget`)
+  console.log(`  PATCH /api/budget/:id      ubah budget`)
+  console.log(`  DELETE /api/budget/:id     hapus budget`)
   console.log(`  POST /api/auth/login-pasien | login-admin | registrasi`)
   console.log(`  POST /api/checkout         validasi stok (BR-04) & resep (BR-05)`)
   console.log(`  PATCH /api/pesanan/:id/status   mesin status (BR-02)`)

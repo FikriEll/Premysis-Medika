@@ -113,6 +113,8 @@ export function DataProvider({ children }) {
       notifikasi: d.notifikasi || [],
       logAktivitas: d.logAktivitas || [],
       pembayaran: d.pembayaran || [],
+      promo: d.promo || [],
+      budget: d.budget || [],
     }
   }, [data, memuat, galat, muat, tambah, ubah, hapus, ubahStatusPesanan, konfirmasiPembayaran, tolakPembayaran, ubahStatusAppointment])
 

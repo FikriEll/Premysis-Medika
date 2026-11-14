@@ -31,6 +31,7 @@ const GRUP = [
       { to: '/kategori', label: 'Kategori', icon: IconFilter, modul: 'produk' },
       { to: '/stok', label: 'Stok', icon: IconStok, modul: 'stok' },
       { to: '/pesanan', label: 'Pesanan', icon: IconPesanan, modul: 'pesanan' },
+      { to: '/promo', label: 'Promo & Diskon', icon: IconFilter, modul: 'produk' },
     ],
   },
   {
@@ -38,6 +39,7 @@ const GRUP = [
     items: [
       { to: '/pengguna', label: 'Pengguna', icon: IconPengguna, modul: 'pengguna' },
       { to: '/laporan', label: 'Laporan', icon: IconLaporan, modul: 'laporan' },
+      { to: '/budget', label: 'Budget & RAB', icon: IconLaporan, modul: 'laporan' },
     ],
   },
 ]
