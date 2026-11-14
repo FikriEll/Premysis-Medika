@@ -18,6 +18,8 @@ const emptyForm = {
   tanggal_mulai: '',
   tanggal_selesai: '',
   status: 'Aktif',
+  gambar: null,
+  gambar_preview: null,
 }
 
 export default function Promo() {
@@ -36,6 +38,20 @@ export default function Promo() {
   )
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
+
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (evt) => {
+      setForm((f) => ({
+        ...f,
+        gambar: file,
+        gambar_preview: evt.target?.result,
+      }))
+    }
+    reader.readAsDataURL(file)
+  }
 
   const openAdd = () => {
     setForm(emptyForm)
@@ -71,6 +87,7 @@ export default function Promo() {
         tanggal_mulai: form.tanggal_mulai,
         tanggal_selesai: form.tanggal_selesai,
         status: form.status,
+        gambar: form.gambar_preview || form.gambar,
         id_pengguna: user?.id,
       }
       if (modal.mode === 'add') await tambah('promo', payload)
@@ -98,6 +115,17 @@ export default function Promo() {
   }
 
   const columns = [
+    {
+      key: 'gambar',
+      header: 'Gambar',
+      render: (p) => (
+        p.gambar ? (
+          <img src={p.gambar} alt={p.nama} className="h-10 w-10 object-cover rounded" />
+        ) : (
+          <div className="h-10 w-10 bg-surface-raised rounded flex items-center justify-center text-xs text-muted">—</div>
+        )
+      ),
+    },
     {
       key: 'nama',
       header: 'Promo',
@@ -208,6 +236,24 @@ export default function Promo() {
               as="textarea"
               rows={2}
             />
+          </Field>
+
+          <Field label="Gambar Promo">
+            <div className="space-y-2">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="block w-full text-sm"
+              />
+              {form.gambar_preview && (
+                <img
+                  src={form.gambar_preview}
+                  alt="Preview"
+                  className="h-32 w-full object-cover rounded border border-hairline"
+                />
+              )}
+            </div>
           </Field>
 
           <Field label="Kode Promo" required>

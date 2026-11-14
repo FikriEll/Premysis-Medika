@@ -1,8 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import {
-  IconDashboard, IconPasien, IconAppointment, IconPemeriksaan, IconVaksin,
-  IconResep, IconProduk, IconStok, IconPesanan, IconPengguna, IconLaporan, IconFilter,
+  IconDashboard, IconProduk, IconStok, IconPesanan, IconPengguna, IconLaporan, IconFilter,
   IconStethoscope, IconClose, IconChevronLeft,
 } from './Icons'
 import { IconButton } from './ui'
@@ -14,16 +13,7 @@ const GRUP = [
     label: 'Ringkasan',
     items: [{ to: '/', label: 'Dashboard', icon: IconDashboard, modul: 'dashboard', end: true }],
   },
-  {
-    label: 'Layanan klinis',
-    items: [
-      { to: '/pasien', label: 'Pasien', icon: IconPasien, modul: 'pasien' },
-      { to: '/appointment', label: 'Appointment', icon: IconAppointment, modul: 'appointment' },
-      { to: '/pemeriksaan', label: 'Pemeriksaan', icon: IconPemeriksaan, modul: 'pemeriksaan' },
-      { to: '/vaksinasi', label: 'Vaksinasi', icon: IconVaksin, modul: 'vaksinasi' },
-      { to: '/resep', label: 'Resep', icon: IconResep, modul: 'resep' },
-    ],
-  },
+
   {
     label: 'Toko & stok',
     items: [
