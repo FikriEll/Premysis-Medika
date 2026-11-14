@@ -88,6 +88,13 @@ const LANGKAH_DIGITAL = [
 function susunSlide(promo) {
   if (promo.length > 0) {
     const warna = ['permukaan-sambutan', 'permukaan-mint', 'permukaan-sky', 'permukaan-peach', 'permukaan-honey']
+    const gambar = [
+      'https://images.unsplash.com/photo-1587854692152-cbe660dbde0f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80', // promo vitamin
+      'https://images.unsplash.com/photo-1631549916768-4119b2e5f926?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80', // promo obat
+      'https://images.unsplash.com/photo-1576602976047-174e57a47881?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80', // apoteker
+      'https://images.unsplash.com/photo-1554224311-beee415c15c7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80', // apotek
+      'https://images.unsplash.com/photo-1631217075966-361bc0e41afa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80', // suplemen
+    ]
     return promo.slice(0, 5).map((p, i) => ({
       kunci: `promo-${p.id}`,
       label: 'Promo Aktif',
@@ -95,6 +102,7 @@ function susunSlide(promo) {
       isi: p.description || `Pakai kode ${p.code} saat membayar dan dapatkan potongan harga.`,
       aksi: 'Pakai Promo',
       warna: warna[i % warna.length],
+      gambar: gambar[i % gambar.length],
       kePromo: true,
       kode: p.code,
     }))

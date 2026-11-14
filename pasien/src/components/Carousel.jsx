@@ -78,6 +78,18 @@ export default function Carousel({ slide = [], onAksi, className = '' }) {
     >
       {/* Wadah slide: hanya slide aktif yang dirender agar isi
           halaman tidak dibacakan berulang oleh pembaca layar. */}
+      {aktif.gambar && (
+        <img
+          alt={aktif.judul}
+          src={aktif.gambar}
+          className="absolute inset-0 h-full w-full object-cover"
+          aria-hidden
+        />
+      )}
+      <div
+        className="absolute inset-0 bg-gradient-to-r from-[rgba(255,255,255,0.95)] to-[rgba(255,255,255,0.7)] dark:from-[rgba(20,20,25,0.95)] dark:to-[rgba(20,20,25,0.7)]"
+        aria-hidden
+      />
       <div
         className="relative z-10 grid items-center gap-5 p-6 sm:grid-cols-[minmax(0,1fr)_auto] sm:p-9"
         role="group"
