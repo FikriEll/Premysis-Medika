@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 // App pasien berjalan di port 5174.
-// Semua panggilan /api diteruskan ke Node server (port 4000)
+// Semua panggilan /api diteruskan ke server apotek (Laravel, port 8000)
 // supaya katalog, stok, harga, dan pesanan yang dilihat pelanggan
 // selalu sama dengan yang dilihat petugas apotek.
 export default defineConfig({
@@ -13,7 +13,7 @@ export default defineConfig({
     open: false,
     proxy: {
       '/api': {
-        target: process.env.API_URL || 'http://127.0.0.1:4000',
+        target: process.env.API_URL || 'http://127.0.0.1:8000',
         changeOrigin: true,
       },
     },
