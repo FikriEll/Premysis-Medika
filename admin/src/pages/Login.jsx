@@ -25,7 +25,7 @@ export default function Login() {
 
   const quickFill = (u) => {
     setEmail(u.email)
-    setPassword('demo1234')
+    setPassword('password')
     setError('')
   }
 
@@ -117,12 +117,12 @@ export default function Login() {
                 </li>
               ))}
             </ul>
-            <p className="mt-2 px-2.5 text-[11.5px] text-muted">Password demo: demo1234</p>
+            <p className="mt-2 px-2.5 text-[11.5px] text-muted">Password demo: <code>password</code></p>
           </div>
         </div>
 
         <p className="mt-5 text-center text-[11.5px] leading-relaxed text-muted">
-          Data pada halaman ini adalah contoh. Autentikasi masih berupa simulasi.
+          Klik akun di atas untuk isi email, lalu masukkan password.
         </p>
       </div>
     </div>
