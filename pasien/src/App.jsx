@@ -44,6 +44,7 @@ import Promo from './pages/Promo'
 import Wishlist from './pages/Wishlist'
 import PengaturanAkun from './pages/PengaturanAkun'
 import PengaturanPengiriman from './pages/PengaturanPengiriman'
+import Lacak from './pages/Lacak'
 import TidakDitemukan from './pages/TidakDitemukan'
 
 // Semua halaman kecuali masuk/registrasi memerlukan sesi pelanggan.
@@ -127,6 +128,7 @@ export default function App() {
           <Route path="checkout" element={<Checkout />} />
           <Route path="pesanan" element={<Pesanan />} />
           <Route path="pesanan/:nomor/bayar" element={<Pembayaran />} />
+          <Route path="lacak" element={<Lacak />} />
           <Route path="profil" element={<Profil />} />
           <Route path="profil/edit" element={<EditProfil />} />
 
