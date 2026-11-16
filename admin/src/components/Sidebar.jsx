@@ -21,6 +21,7 @@ const GRUP = [
       { to: '/kategori', label: 'Kategori', icon: IconFilter, modul: 'produk' },
       { to: '/stok', label: 'Stok', icon: IconStok, modul: 'stok' },
       { to: '/pesanan', label: 'Pesanan', icon: IconPesanan, modul: 'pesanan' },
+      { to: '/pengembalian', label: 'Pengembalian', icon: IconPesanan, modul: 'pesanan' },
       { to: '/promo', label: 'Promo & Diskon', icon: IconFilter, modul: 'produk' },
     ],
   },

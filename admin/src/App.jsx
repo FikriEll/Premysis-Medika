@@ -16,6 +16,7 @@ import Promo from './pages/Promo'
 import Budget from './pages/Budget'
 import Pengguna from './pages/Pengguna'
 import Laporan from './pages/Laporan'
+import Pengembalian from './pages/Pengembalian'
 import NotFound from './pages/NotFound'
 import Forbidden from './pages/Forbidden'
 
@@ -59,6 +60,7 @@ export default function App() {
         <Route path="kategori" element={<Protected modul="produk"><Kategori /></Protected>} />
         <Route path="stok" element={<Protected modul="stok"><Stok /></Protected>} />
         <Route path="pesanan" element={<Protected modul="pesanan"><Pesanan /></Protected>} />
+        <Route path="pengembalian" element={<Protected modul="pesanan"><Pengembalian /></Protected>} />
         <Route path="promo" element={<Protected modul="produk"><Promo /></Protected>} />
         <Route path="budget" element={<Protected modul="laporan"><Budget /></Protected>} />
         <Route path="pengguna" element={<Protected modul="pengguna"><Pengguna /></Protected>} />
