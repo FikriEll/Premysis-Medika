@@ -13,9 +13,8 @@ export const roleLabels = {
 // Catatan: Asisten 1 (front office) & Asisten 2 (e-commerce/stok) digabung
 // menjadi satu peran "asisten" dengan hak akses gabungan.
 export const users = [
-  { id: 1, nama: 'Siska Mariawati, S.Tr.Keb.', email: 'siska@premysismedika.id', peran: 'bidan', status_aktif: true, no_hp: '0812-1111-2222' },
-  { id: 2, nama: 'Rina Kartika', email: 'rina@premysismedika.id', peran: 'asisten', status_aktif: true, no_hp: '0812-3333-4444' },
-  { id: 4, nama: 'Ayu Lestari', email: 'ayu@premysismedika.id', peran: 'asisten', status_aktif: false, no_hp: '0812-7777-8888' },
+  { id: 1, nama: 'Admin Apotek', email: 'admin@apotek.test', peran: 'bidan', status_aktif: true, no_hp: '0812-1111-2222' },
+  { id: 2, nama: 'Asisten Apotek', email: 'asisten@apotek.test', peran: 'asisten', status_aktif: true, no_hp: '0812-3333-4444' },
 ]
 
 // --- Pasien ---
