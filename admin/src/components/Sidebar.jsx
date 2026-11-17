@@ -31,6 +31,8 @@ const GRUP = [
       { to: '/pengguna', label: 'Pengguna', icon: IconPengguna, modul: 'pengguna' },
       { to: '/laporan', label: 'Laporan', icon: IconLaporan, modul: 'laporan' },
       { to: '/budget', label: 'Budget & RAB', icon: IconLaporan, modul: 'laporan' },
+      { to: '/crm', label: 'CRM', icon: IconLaporan, modul: 'laporan' },
+      { to: '/pengaturan', label: 'Pengaturan', icon: IconLaporan, modul: 'laporan' },
     ],
   },
 ]

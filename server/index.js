@@ -766,9 +766,74 @@ async function tanganiApi(req, res, url) {
     return kirim(res, 200, hapus)
   }
 
-  // -----------------------------------------------------------
-  // CRUD generik: /api/:koleksi dan /api/:koleksi/:id
-  // -----------------------------------------------------------
+  // --- Pengaturan Website (admin only) ---
+  if (bagian[0] === 'pengaturan' && metode === 'GET') {
+    return kirim(res, 200, db.pengaturan)
+  }
+  if (bagian[0] === 'pengaturan' && bagian[1] && metode === 'PATCH') {
+    const p = db.pengaturan
+    Object.assign(p, body)
+    return kirim(res, 200, p)
+  }
+
+  // --- CRM Lead CRUD (admin only) ---
+  if (bagian[0] === 'crmLead' && metode === 'GET') {
+    return kirim(res, 200, db.crmLead)
+  }
+  if (bagian[0] === 'crmLead' && metode === 'POST') {
+    const { nama, email, telepon, asal, status, nilai_potensial, catatan } = body
+    if (!nama || !email) return kirim(res, 400, { pesan: 'Nama dan email wajib.' })
+    const baru = {
+      id: idBerikut(),
+      nama,
+      email,
+      telepon: telepon || '',
+      asal: asal || '',
+      status: status || 'Prospek',
+      nilai_potensial: nilai_potensial || 0,
+      tanggal_daftar: DEMO_TANGGAL,
+      catatan: catatan || '',
+    }
+    db.crmLead.push(baru)
+    catat('Buat lead CRM', 'CRM Lead', baru.id)
+    return kirim(res, 201, baru)
+  }
+  if (bagian[0] === 'crmLead' && bagian[1] && metode === 'PATCH') {
+    const l = db.crmLead.find((x) => x.id === Number(bagian[1]))
+    if (!l) return kirim(res, 404, { pesan: 'Lead tidak ditemukan.' })
+    Object.assign(l, body)
+    catat('Ubah lead CRM', 'CRM Lead', l.id)
+    return kirim(res, 200, l)
+  }
+  if (bagian[0] === 'crmLead' && bagian[1] && metode === 'DELETE') {
+    const idx = db.crmLead.findIndex((x) => x.id === Number(bagian[1]))
+    if (idx === -1) return kirim(res, 404, { pesan: 'Lead tidak ditemukan.' })
+    const hapus = db.crmLead.splice(idx, 1)[0]
+    catat('Hapus lead CRM', 'CRM Lead', hapus.id)
+    return kirim(res, 200, hapus)
+  }
+
+  // --- CRM Interaksi CRUD (admin only) ---
+  if (bagian[0] === 'crmInteraksi' && metode === 'GET') {
+    return kirim(res, 200, db.crmInteraksi)
+  }
+  if (bagian[0] === 'crmInteraksi' && metode === 'POST') {
+    const { id_lead, jenis, hasil, catatan } = body
+    if (!id_lead || !jenis) return kirim(res, 400, { pesan: 'Lead dan jenis interaksi wajib.' })
+    const baru = {
+      id: idBerikut(),
+      id_lead: Number(id_lead),
+      jenis,
+      tanggal: sekarang(),
+      hasil: hasil || '',
+      catatan: catatan || '',
+    }
+    db.crmInteraksi.push(baru)
+    catat('Buat interaksi CRM', 'CRM Interaksi', baru.id)
+    return kirim(res, 201, baru)
+  }
+
+  
   const koleksi = bagian[0]
   if (!koleksi || !Array.isArray(db[koleksi])) {
     return kirim(res, 404, { pesan: `Koleksi "${koleksi}" tidak dikenal.` })

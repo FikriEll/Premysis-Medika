@@ -17,6 +17,8 @@ import Budget from './pages/Budget'
 import Pengguna from './pages/Pengguna'
 import Laporan from './pages/Laporan'
 import Pengembalian from './pages/Pengembalian'
+import Pengaturan from './pages/Pengaturan'
+import CRM from './pages/CRM'
 import NotFound from './pages/NotFound'
 import Forbidden from './pages/Forbidden'
 
@@ -65,6 +67,8 @@ export default function App() {
         <Route path="budget" element={<Protected modul="laporan"><Budget /></Protected>} />
         <Route path="pengguna" element={<Protected modul="pengguna"><Pengguna /></Protected>} />
         <Route path="laporan" element={<Protected modul="laporan"><Laporan /></Protected>} />
+        <Route path="pengaturan" element={<Protected modul="laporan"><Pengaturan /></Protected>} />
+        <Route path="crm" element={<Protected modul="laporan"><CRM /></Protected>} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>

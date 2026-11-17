@@ -10,9 +10,9 @@ export default function Lacak() {
     // Fetch latest order with tracking
     const fetchTracking = async () => {
       try {
-        const res = await fetch('/api/orders')
+        const res = await fetch('/api/pesanan')
         const orders = await res.json()
-        if (orders.length > 0) {
+        if (Array.isArray(orders) && orders.length > 0) {
           const latest = orders[0]
           setOrder(latest)
           // Simulate realtime courier position

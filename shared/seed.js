@@ -13,6 +13,42 @@ export const roleLabels = {
   asisten: 'Asisten Bidan',
 }
 
+// --- Pengaturan Website (Admin) ---
+export const pengaturan = {
+  nama_klinik: 'Premysis Medika',
+  deskripsi_klinik: 'Klinik kesehatan modern dengan fokus pada pelayanan ibu dan anak',
+  email_kontak: 'info@premysismedika.id',
+  telepon: '0812-1234-5678',
+  alamat: 'Jl. Melati No. 100, Depok, Jawa Barat',
+  jam_buka: '08:00',
+  jam_tutup: '17:00',
+  hari_libur: 'Minggu',
+  logo_url: null,
+  favicon_url: null,
+  media_sosial: {
+    whatsapp: '62821234567',
+    facebook: 'premysismedika',
+    instagram: '@premysismedika',
+  },
+  dibuat_tanggal: '2026-01-01',
+  diubah_tanggal: '2026-01-01',
+}
+
+// --- CRM: Lead / Pelanggan (Admin) ---
+export const crmLead = [
+  { id: 1, nama: 'Ibu Rahma', email: 'rahma@email.com', telepon: '0813-5000-0001', asal: 'Google Maps', status: 'Prospek', nilai_potensial: 500000, tanggal_daftar: '2026-04-01', catatan: 'Tertarik paket checkup kehamilan' },
+  { id: 2, nama: 'Bapak Hendra', email: 'hendra@email.com', telepon: '0813-5000-0002', asal: 'Rekomendasi', status: 'Konversi', nilai_potensial: 0, tanggal_daftar: '2026-03-15', catatan: 'Sudah menjadi pasien aktif' },
+  { id: 3, nama: 'Ibu Sinta', email: 'sinta@email.com', telepon: '0813-5000-0003', asal: 'Instagram', status: 'Follow-up', nilai_potensial: 1200000, tanggal_daftar: '2026-04-10', catatan: 'Tanya harga paket KB' },
+]
+
+// --- CRM: Riwayat Interaksi ---
+export const crmInteraksi = [
+  { id: 1, id_lead: 1, jenis: 'Telepon', tanggal: '2026-04-11 09:30', hasil: 'Tertarik dengan layanan', catatan: 'Follow-up minggu depan' },
+  { id: 2, id_lead: 2, jenis: 'Kunjungan', tanggal: '2026-03-20 14:00', hasil: 'Melakukan pemeriksaan', catatan: 'Bayar tunai' },
+  { id: 3, id_lead: 1, jenis: 'WhatsApp', tanggal: '2026-04-12 18:45', hasil: 'Tanya ketersediaan jadwal', catatan: 'Diminta jadwal hari Sabtu' },
+  { id: 4, id_lead: 3, jenis: 'Email', tanggal: '2026-04-10 11:00', hasil: 'Tanya detail paket KB', catatan: 'Kirim katalog lengkap' },
+]
+
 // --- Pengguna (Admin) - PRD §15 ---
 // Asisten 1 (front office) & Asisten 2 (e-commerce/stok) digabung
 // menjadi satu peran "asisten" dengan hak akses gabungan.
@@ -198,6 +234,7 @@ export const collections = {
   users, pasien, bayi, jenisVaksin, jadwalVaksin, appointment,
   pemeriksaan, kategori, produk, stokMutasi, resep, pesanan,
   pembayaran, notifikasi, logAktivitas, promo, budget,
+  pengaturan, crmLead, crmInteraksi,
 }
 
 export function seedDatabase() {
